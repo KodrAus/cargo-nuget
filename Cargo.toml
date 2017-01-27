@@ -1,0 +1,12 @@
+[package]
+name = "nuget"
+version = "0.1.0"
+authors = ["Ashley Mannix <ashleymannix@live.com.au>"]
+
+[dependencies]
+quick-error = "*"
+clap = "*"
+term-painter = "*"
+toml = { version = "0.2", features = ["serde"], default-features = false }
+xml-rs = "*"
+zip = "*"
