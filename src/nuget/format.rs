@@ -5,6 +5,8 @@ use xml::common::XmlVersion;
 use xml::attribute::Attribute;
 use xml::namespace::Namespace;
 
+// TODO: May need "Microsoft.NETCore.Platforms": "*"
+
 /// Args for building a `nuspec` metadata file.
 #[derive(Debug, PartialEq)]
 pub struct FormatNuspecArgs<'a> {
