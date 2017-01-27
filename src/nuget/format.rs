@@ -8,95 +8,98 @@ use xml::namespace::Namespace;
 /// Args for building a `nuspec` metadata file.
 #[derive(Debug, PartialEq)]
 pub struct FormatNuspecArgs<'a> {
-	pub id: Cow<'a, str>,
-	pub version: Cow<'a, str>,
-	pub authors: Cow<'a, str>,
-	pub description: Option<Cow<'a, str>>
+    pub id: Cow<'a, str>,
+    pub version: Cow<'a, str>,
+    pub authors: Cow<'a, str>,
+    pub description: Option<Cow<'a, str>>,
 }
 
 /// Format the input as a `nuspec` xml buffer.
 pub fn format_nuspec<'a, T>(args: T) -> Result<Vec<u8>, FormatNuspecError>
-	where T: Into<FormatNuspecArgs<'a>>
+    where T: Into<FormatNuspecArgs<'a>>
 {
-	let args = args.into();
+    let args = args.into();
 
-	let mut writer = EventWriter::new(Vec::new());
+    let mut writer = EventWriter::new(Vec::new());
 
-	// Write the version
-	writer.write(XmlEvent::StartDocument { 
-		version: XmlVersion::Version10, 
-		encoding: None, 
-		standalone: None 
-	})?;
+    // Write the version
+    writer.write(XmlEvent::StartDocument {
+            version: XmlVersion::Version10,
+            encoding: None,
+            standalone: None,
+        })?;
 
-	let pkg_attr = Attribute { 
-		name: "xmlns".into(), 
-		value: "http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd" 
-	};
+    let pkg_attr = Attribute {
+        name: "xmlns".into(),
+        value: "http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd",
+    };
 
-	elem(&mut writer, "package", &[pkg_attr], |ref mut writer| {
-		elem(writer, "metadata", &[], |ref mut writer| {
-			val(writer, "id", &args.id)?;
-			val(writer, "version", &args.version)?;
-			val(writer, "authors", &args.authors)?;
+    elem(&mut writer, "package", &[pkg_attr], |ref mut writer| {
+        elem(writer, "metadata", &[], |ref mut writer| {
+            val(writer, "id", &args.id)?;
+            val(writer, "version", &args.version)?;
+            val(writer, "authors", &args.authors)?;
 
-			if let Some(ref description) = args.description {
-				val(writer, "description", &description)?;
-			}
+            if let Some(ref description) = args.description {
+                val(writer, "description", &description)?;
+            }
 
-			Ok(())
-		})
-	})?;
+            Ok(())
+        })
+    })?;
 
-	Ok(writer.into_inner())
+    Ok(writer.into_inner())
 }
 
-fn elem<W, F>(writer: &mut EventWriter<W>, name: &str, attrs: &[Attribute], f: F) -> Result<(), FormatNuspecError>
-	where W: Write,
-		  F: Fn(&mut EventWriter<W>) -> Result<(), FormatNuspecError>
+fn elem<W, F>(writer: &mut EventWriter<W>,
+              name: &str,
+              attrs: &[Attribute],
+              f: F)
+              -> Result<(), FormatNuspecError>
+    where W: Write,
+          F: Fn(&mut EventWriter<W>) -> Result<(), FormatNuspecError>
 {
-	writer.write(XmlEvent::StartElement { 
-		name: name.into(),
-		attributes: Cow::Borrowed(attrs),
-		namespace: Cow::Owned(Namespace::empty())
-	})?;
+    writer.write(XmlEvent::StartElement {
+            name: name.into(),
+            attributes: Cow::Borrowed(attrs),
+            namespace: Cow::Owned(Namespace::empty()),
+        })?;
 
-	f(writer)?;
+    f(writer)?;
 
-	writer.write(XmlEvent::EndElement {
-		name: Some(name.into())
-	})?;
+    writer.write(XmlEvent::EndElement { name: Some(name.into()) })?;
 
-	Ok(())
+    Ok(())
 }
 
-fn val<W, V>(writer: &mut EventWriter<W>, name: &str, value: &V) -> Result<(), FormatNuspecError> 
-	where W: Write,
-		  V: AsRef<str>
+fn val<W, V>(writer: &mut EventWriter<W>, name: &str, value: &V) -> Result<(), FormatNuspecError>
+    where W: Write,
+          V: AsRef<str>
 {
-	writer.write(XmlEvent::StartElement { 
-		name: name.into(),
-		attributes: Cow::Borrowed(&[]),
-		namespace: Cow::Owned(Namespace::empty())
-	})?;
+    writer.write(XmlEvent::StartElement {
+            name: name.into(),
+            attributes: Cow::Borrowed(&[]),
+            namespace: Cow::Owned(Namespace::empty()),
+        })?;
 
-	writer.write(XmlEvent::Characters(value.as_ref()))?;
+    writer.write(XmlEvent::Characters(value.as_ref()))?;
 
-	writer.write(XmlEvent::EndElement {
-		name: Some(name.into())
-	})?;
+    writer.write(XmlEvent::EndElement { name: Some(name.into()) })?;
 
-	Ok(())
+    Ok(())
 }
 
 quick_error!{
+    /// An error encountered formatting a Nuspec.
 	#[derive(Debug)]
 	pub enum FormatNuspecError {
+        /// An io-related error writing the nuspec.
 		Io(err: IoError) {
 			cause(err)
 			display("Error writing nuget config\nCaused by: {}", err)
 			from()
 		}
+        /// An xml formatting error.
 		Xml(err: XmlError) {
 			display("Error writing nuget config\nCaused by: {}", err)
 			from()
@@ -106,23 +109,23 @@ quick_error!{
 
 #[cfg(test)]
 mod tests {
-	use std::borrow::Cow;
-	use std::str;
-	use super::*;
+    use std::borrow::Cow;
+    use std::str;
+    use super::*;
 
-	#[test]
-	fn format_nuget() {
-		let args = FormatNuspecArgs {
-			id: Cow::Borrowed("native"),
-			version: Cow::Borrowed("0.1.0"),
-			authors: Cow::Borrowed("Someone"),
-			description: Some(Cow::Borrowed("A description for this package"))
-		};
+    #[test]
+    fn format_nuget() {
+        let args = FormatNuspecArgs {
+            id: Cow::Borrowed("native"),
+            version: Cow::Borrowed("0.1.0"),
+            authors: Cow::Borrowed("Someone"),
+            description: Some(Cow::Borrowed("A description for this package")),
+        };
 
-		let xml = format_nuspec(args).unwrap();
+        let xml = format_nuspec(args).unwrap();
 
-		let expected = r#"<?xml version="1.0" encoding="UTF-8"?><package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd"><metadata><id>native</id><version>0.1.0</version><authors>Someone</authors><description>A description for this package</description></metadata></package>"#;
+        let expected = r#"<?xml version="1.0" encoding="UTF-8"?><package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd"><metadata><id>native</id><version>0.1.0</version><authors>Someone</authors><description>A description for this package</description></metadata></package>"#;
 
-		assert_eq!(expected, str::from_utf8(&xml).unwrap());
-	}
+        assert_eq!(expected, str::from_utf8(&xml).unwrap());
+    }
 }

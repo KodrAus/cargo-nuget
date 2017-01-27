@@ -9,6 +9,4 @@ extern crate toml;
 pub mod cargo;
 pub mod nuget;
 
-fn main() {
-    
-}
+fn main() {}
