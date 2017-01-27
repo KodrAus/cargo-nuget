@@ -24,7 +24,7 @@ pub struct CargoConfig {
 
 macro_rules! toml_val {
     ($toml:ident [ $key:expr ] . $cast:ident ( )) => ({
-    	$toml.get($key).and_then(|k| k.$cast()).ok_or(CargoParseError::Missing { key: $key })
+        $toml.get($key).and_then(|k| k.$cast()).ok_or(CargoParseError::Missing { key: $key })
     })
 }
 
@@ -89,32 +89,32 @@ pub fn parse_toml<'a, T>(args: T) -> Result<CargoConfig, CargoParseError>
 }
 
 quick_error!{
-	/// An error encountered while parsing Cargo configuration.
-	#[derive(Debug)]
-	pub enum CargoParseError {
-		/// An io-related error reading from a file.
-		Io { src: String, err: IoError } {
-			cause(err)
-			display("Error reading config from '{}'\nCaused by: {}", src, err)
-		}
-		/// An error reading the buffer as a UTF8 string.
-		Utf8(err: Utf8Error) {
-			cause(err)
-			display("Error parsing config\nCaused by: {}", err)
-			from()
-		}
-		/// A required value that wasn't in the config.
-		///
-		/// This could be because it isn't present, in the wrong place,
-		/// or has the wrong value.
-		Missing { key: &'static str } {
-			display("The config is missing '{}'", key)
-		}
-		/// An error parsing the input as TOML.
-		Toml { errs: Vec<ParserError> } {
-			display("Error parsing config\nCaused by: {:?}", errs)
-		}
-	}
+    /// An error encountered while parsing Cargo configuration.
+    #[derive(Debug)]
+    pub enum CargoParseError {
+        /// An io-related error reading from a file.
+        Io { src: String, err: IoError } {
+            cause(err)
+            display("Error reading config from '{}'\nCaused by: {}", src, err)
+        }
+        /// An error reading the buffer as a UTF8 string.
+        Utf8(err: Utf8Error) {
+            cause(err)
+            display("Error parsing config\nCaused by: {}", err)
+            from()
+        }
+        /// A required value that wasn't in the config.
+        ///
+        /// This could be because it isn't present, in the wrong place,
+        /// or has the wrong value.
+        Missing { key: &'static str } {
+            display("The config is missing '{}'", key)
+        }
+        /// An error parsing the input as TOML.
+        Toml { errs: Vec<ParserError> } {
+            display("Error parsing config\nCaused by: {:?}", errs)
+        }
+    }
 }
 
 #[cfg(test)]
@@ -131,11 +131,11 @@ mod tests {
     #[test]
     fn parse_toml_from_buf() {
         let toml = r#"
-			[package]
-			name = "native"
-			version = "0.1.0"
-			authors = ["Somebody", "Somebody Else"]
-		"#;
+            [package]
+            name = "native"
+            version = "0.1.0"
+            authors = ["Somebody", "Somebody Else"]
+        "#;
 
         let args = ParseCargoArgs::FromBuf { buf: Cow::Borrowed(toml.as_bytes()) };
 

@@ -91,20 +91,20 @@ fn val<W, V>(writer: &mut EventWriter<W>, name: &str, value: &V) -> Result<(), F
 
 quick_error!{
     /// An error encountered formatting a Nuspec.
-	#[derive(Debug)]
-	pub enum FormatNuspecError {
+    #[derive(Debug)]
+    pub enum FormatNuspecError {
         /// An io-related error writing the nuspec.
-		Io(err: IoError) {
-			cause(err)
-			display("Error writing nuget config\nCaused by: {}", err)
-			from()
-		}
+        Io(err: IoError) {
+            cause(err)
+            display("Error writing nuget config\nCaused by: {}", err)
+            from()
+        }
         /// An xml formatting error.
-		Xml(err: XmlError) {
-			display("Error writing nuget config\nCaused by: {}", err)
-			from()
-		}
-	}
+        Xml(err: XmlError) {
+            display("Error writing nuget config\nCaused by: {}", err)
+            from()
+        }
+    }
 }
 
 #[cfg(test)]
