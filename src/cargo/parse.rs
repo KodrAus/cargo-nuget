@@ -9,8 +9,8 @@ use toml::{Parser, ParserError};
 /// The source can either be a relative filepath or a byte buffer.
 #[derive(Debug, PartialEq)]
 pub enum ParseCargoArgs<'a> {
-	FromFile { path: &'a str },
-	FromBuf { buf: &'a[u8] }
+	FromFile { path: Cow<'a, str> },
+	FromBuf { buf: Cow<'a, [u8]> }
 }
 
 /// The parsed `Cargo.toml` metadata.
@@ -39,16 +39,16 @@ pub fn parse_toml<'a, T>(args: T) -> Result<CargoConfig, CargoParseError>
 		// Read the file to an owned buffer
 		ParseCargoArgs::FromFile { path } => {
 			let mut buf = Vec::new();
-			let mut f = File::open(&path)
-				.map_err(|e| CargoParseError::Io { src: path.into(), err: e })?;
+			let mut f = File::open(path.as_ref())
+				.map_err(|e| CargoParseError::Io { src: path.to_string(), err: e })?;
 
 			f.read_to_end(&mut buf)
-				.map_err(|e| CargoParseError::Io { src: path.into(), err: e })?;
+				.map_err(|e| CargoParseError::Io { src: path.to_string(), err: e })?;
 
 			Cow::Owned(buf)
 		},
 		// Just use the buffer given
-		ParseCargoArgs::FromBuf { buf } => Cow::Borrowed(buf)
+		ParseCargoArgs::FromBuf { buf } => buf
 	};
 
 	let utf8 = str::from_utf8(&buf)?;
@@ -115,7 +115,7 @@ mod tests {
 	#[test]
 	fn parse_toml_from_file() {
 		let args = ParseCargoArgs::FromFile { 
-			path: "tests/native/Cargo.toml" 
+			path: Cow::Borrowed("tests/native/Cargo.toml") 
 		};
 
 		parse_toml(args).unwrap();
@@ -131,7 +131,7 @@ mod tests {
 		"#;
 
 		let args = ParseCargoArgs::FromBuf { 
-			buf: toml.as_bytes()
+			buf: Cow::Borrowed(toml.as_bytes())
 		};
 
 		let toml = parse_toml(args).unwrap();
