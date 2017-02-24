@@ -23,7 +23,7 @@ pub struct FormatNuspecArgs<'a> {
 /// A formatted nuspec file.
 #[derive(Debug, PartialEq)]
 pub struct Nuspec {
-    pub xml: Buf
+    pub xml: Buf,
 }
 
 /// Format the input as a `nuspec` xml buffer.

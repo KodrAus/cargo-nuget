@@ -35,6 +35,7 @@ impl Debug for Buf {
     }
 }
 
+/// Build args to format a nuspec from cargo toml.
 impl<'a> From<&'a CargoConfig> for FormatNuspecArgs<'a> {
     fn from(cargo: &'a CargoConfig) -> Self {
         FormatNuspecArgs {
@@ -46,14 +47,16 @@ impl<'a> From<&'a CargoConfig> for FormatNuspecArgs<'a> {
     }
 }
 
-impl From<CargoBuildTarget> for (NugetTarget, NugetArch) {
-    fn from(value: CargoBuildTarget) -> (NugetTarget, NugetArch) {
+/// Get a target, arch tuple from a cargo build target.
+impl From<CargoBuildTarget> for NugetTarget {
+    fn from(value: CargoBuildTarget) -> NugetTarget {
         match value {
-            CargoBuildTarget::Local => (NugetTarget::local(), NugetArch::local())
+            CargoBuildTarget::Local => NugetTarget::local(),
         }
     }
 }
 
+/// Build args to pack a nupkg from nuspec and cargo build.
 impl<'a> From<(&'a Nuspec, &'a CargoBuildOutput)> for NugetPackArgs<'a> {
     fn from((nuspec, build): (&'a Nuspec, &'a CargoBuildOutput)) -> Self {
         let mut libs = BTreeMap::new();
@@ -62,7 +65,7 @@ impl<'a> From<(&'a Nuspec, &'a CargoBuildOutput)> for NugetPackArgs<'a> {
 
         NugetPackArgs {
             spec: &nuspec.xml,
-            cargo_libs: libs
+            cargo_libs: libs,
         }
     }
 }

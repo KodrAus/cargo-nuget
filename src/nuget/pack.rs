@@ -8,9 +8,9 @@ use super::Buf;
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum NugetTarget {
     Unknown,
-    Windows,
-    Unix,
-    MacOS,
+    Windows(NugetArch),
+    Unix(NugetArch),
+    MacOS(NugetArch),
 }
 
 impl NugetTarget {
@@ -18,12 +18,19 @@ impl NugetTarget {
         LOCAL_TARGET
     }
 
-    fn runtime(&self) -> &'static str {
+    fn rid(&self) -> Cow<'static, str> {
+        fn path(target: &'static str, arch: Option<&'static str>) -> Cow<'static, str> {
+            match arch {
+                Some(arch) => format!("{}-{}", target, arch).into(),
+                None => target.into(),
+            }
+        }
+
         match *self {
-            NugetTarget::Windows => "win7",
-            NugetTarget::MacOS => "osx",
-            NugetTarget::Unix => "unix",
-            NugetTarget::Unknown => "unknown",
+            NugetTarget::Windows(ref arch) => path("win7", arch.rid()),
+            NugetTarget::MacOS(ref arch) => path("osx", arch.rid()),
+            NugetTarget::Unix(ref arch) => path("unix", arch.rid()),
+            _ => "any".into(),
         }
     }
 }
@@ -41,17 +48,13 @@ impl NugetArch {
         LOCAL_ARCH
     }
 
-    fn arch(&self) -> &'static str {
+    fn rid(&self) -> Option<&'static str> {
         match *self {
-            NugetArch::x86 => "x86",
-            NugetArch::x64 => "x64",
-            NugetArch::Unknown => "unknown",
+            NugetArch::x86 => Some("x86"),
+            NugetArch::x64 => Some("x64"),
+            NugetArch::Unknown => None,
         }
     }
-}
-
-fn runtime_path(target: NugetTarget, arch: NugetArch) -> String {
-    format!("{}-{}", target.runtime(), arch.arch())
 }
 
 const X86_ARCH: NugetArch = NugetArch::x86;
@@ -64,32 +67,45 @@ const LOCAL_ARCH: NugetArch = X64_ARCH;
 #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
 const LOCAL_ARCH: NugetArch = NugetArch::Unknown;
 
-const WINDOWS_TARGET: NugetTarget = NugetTarget::Windows;
-const UNIX_TARGET: NugetTarget = NugetTarget::Unix;
-const MACOS_TARGET: NugetTarget = NugetTarget::MacOS;
-
 #[cfg(windows)]
-const LOCAL_TARGET: NugetTarget = WINDOWS_TARGET;
+const LOCAL_TARGET: NugetTarget = NugetTarget::Windows(LOCAL_ARCH);
 #[cfg(macos)]
-const LOCAL_TARGET: NugetTarget = MACOS_TARGET;
+const LOCAL_TARGET: NugetTarget = NugetTarget::MacOS(LOCAL_ARCH);
 #[cfg(unix)]
-const LOCAL_TARGET: NugetTarget = UNIX_TARGET;
+const LOCAL_TARGET: NugetTarget = NugetTarget::Unix(LOCAL_ARCH);
+#[cfg(not(any(windows, macos, unix)))]
+const LOCAL_TARGET: NugetTarget = NugetTarget::Unknown;
 
 #[derive(Debug, PartialEq)]
 pub struct NugetPackArgs<'a> {
     pub spec: &'a Buf,
-    pub cargo_libs: BTreeMap<(NugetTarget, NugetArch), &'a Path>,
+    pub cargo_libs: BTreeMap<NugetTarget, &'a Path>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct Nupkg {
-    buf: Buf
+    rids: Vec<Cow<'static, str>>,
+    buf: Buf,
 }
 
 pub fn pack<'a>(args: NugetPackArgs<'a>) -> Result<Nupkg, NugetPackError> {
     // TODO: Build zip: write nuspec, write folder for each lib
     // Windows: /runtimes/win7-x64/native/file.dll
-    unimplemented!();
+
+    let pkgs: Vec<_> = args.cargo_libs
+        .iter()
+        .filter_map(|(target, path)| match target {
+            &NugetTarget::Unknown => None,
+            target => Some((target.rid(), path)),
+        })
+        .collect();
+
+    let rids = pkgs.into_iter().map(|(rid, _)| rid).collect();
+
+    Ok(Nupkg {
+        rids: rids,
+        buf: vec![].into(),
+    })
 }
 
 quick_error!{

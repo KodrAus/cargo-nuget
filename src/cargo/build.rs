@@ -19,11 +19,11 @@ pub enum CargoBuildProfile {
 }
 
 impl CargoBuildProfile {
-    /// Get the path within the `target` folder for the output. 
+    /// Get the path within the `target` folder for the output.
     fn path(&self) -> &'static str {
         match *self {
             CargoBuildProfile::Debug => "debug",
-            CargoBuildProfile::Release => "release"
+            CargoBuildProfile::Release => "release",
         }
     }
 }
@@ -49,7 +49,7 @@ impl CargoBuildTarget {
     /// Get the platform specific extension for the build output.
     fn extension(&self) -> &'static str {
         match *self {
-            CargoBuildTarget::Local => LOCAL_EXTENSION
+            CargoBuildTarget::Local => LOCAL_EXTENSION,
         }
     }
 }
@@ -72,19 +72,23 @@ pub struct CargoBuildOutput {
 }
 
 pub fn build_lib<'a>(args: CargoBuildArgs<'a>) -> Result<CargoBuildOutput, CargoBuildError> {
-    let output = cargo_command(&args)
-        .output()
+    let output = cargo_command(&args).output()
         .map_err(|e| CargoBuildError::from(e))?;
 
     if !output.status.success() {
         Err(CargoBuildError::Run)?;
     }
 
-    let path = output_path(&args);    
+    let path = output_path(&args);
 
     match path.exists() {
-        true => Ok(CargoBuildOutput { path: path, target: args.target }),
-        false => Err(CargoBuildError::MissingOutput { path: path })
+        true => {
+            Ok(CargoBuildOutput {
+                path: path,
+                target: args.target,
+            })
+        }
+        false => Err(CargoBuildError::MissingOutput { path: path }),
     }
 }
 
@@ -162,30 +166,24 @@ mod tests {
 
     #[test]
     fn cargo_build_release() {
-        let args = CargoBuildArgs { 
-            profile: CargoBuildProfile::Release, 
-            ..local_args() 
-        };
+        let args = CargoBuildArgs { profile: CargoBuildProfile::Release, ..local_args() };
 
         build_lib(args).unwrap();
     }
 
     #[test]
     fn cargo_test_debug() {
-        let args = CargoBuildArgs { 
-            kind: CargoBuildKind::Test, 
-            ..local_args() 
-        };
+        let args = CargoBuildArgs { kind: CargoBuildKind::Test, ..local_args() };
 
         build_lib(args).unwrap();
     }
 
     #[test]
     fn cargo_test_release() {
-        let args = CargoBuildArgs { 
-            kind: CargoBuildKind::Test, 
-            profile: CargoBuildProfile::Release, 
-            ..local_args() 
+        let args = CargoBuildArgs {
+            kind: CargoBuildKind::Test,
+            profile: CargoBuildProfile::Release,
+            ..local_args()
         };
 
         build_lib(args).unwrap();
@@ -193,16 +191,13 @@ mod tests {
 
     #[test]
     fn cargo_build_missing_output() {
-        let args = CargoBuildArgs {
-            output_name: "not_the_output",
-            ..local_args()
-        };
+        let args = CargoBuildArgs { output_name: "not_the_output", ..local_args() };
 
         let result = build_lib(args);
 
         match result {
             Err(CargoBuildError::MissingOutput { .. }) => (),
-            r => panic!("{:?}", r)
+            r => panic!("{:?}", r),
         }
     }
 }

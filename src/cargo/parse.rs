@@ -1,4 +1,4 @@
-//! Parse metadata out of a `Cargo.toml`. 
+//! Parse metadata out of a `Cargo.toml`.
 
 use std::str::{self, Utf8Error};
 use std::collections::BTreeMap;
@@ -71,7 +71,8 @@ pub fn parse_toml<'a>(args: CargoParseArgs<'a>) -> Result<CargoConfig, CargoPars
             let name = toml_val!(pkg["name"].as_str())?.into();
             let ver = toml_val!(pkg["version"].as_str())?.into();
             let desc = toml_val!(pkg["description"].as_str()).ok().map(|v| v.into());
-            let authors = toml_val!(pkg["authors"].as_slice())?
+            let authors = toml_val!(pkg["authors"].as_slice())
+                ?
                 .iter()
                 .filter_map(|a| a.as_str())
                 .map(|a| a.into())
@@ -91,14 +92,15 @@ pub fn parse_toml<'a>(args: CargoParseArgs<'a>) -> Result<CargoConfig, CargoPars
 fn ensure_crate_is_dylib(toml: &BTreeMap<String, Value>) -> Result<(), CargoInvalidError> {
     let lib = toml_val!(toml["lib"].as_table())?;
 
-    let is_dylib = toml_val!(lib["crate-type"].as_slice())?
+    let is_dylib = toml_val!(lib["crate-type"].as_slice())
+        ?
         .iter()
         .filter_map(|t| t.as_str())
         .any(|t| t == "dylib");
 
     match is_dylib {
         true => Ok(()),
-        _ => Err(CargoInvalidError::NotADyLib)
+        _ => Err(CargoInvalidError::NotADyLib),
     }
 }
 
@@ -198,8 +200,7 @@ mod tests {
 
     #[test]
     fn parse_toml_missing_version() {
-        test_invalid!(
-            r#"
+        test_invalid!(r#"
                 [package]
                 name = "native"
                 authors = ["Somebody", "Somebody Else"]
@@ -207,15 +208,13 @@ mod tests {
                 [lib]
                 crate-type = ["rlib", "dylib"]
             "#,
-            CargoParseError::Invalid(CargoInvalidError::Missing { key: "version" })
-        );
+                      CargoParseError::Invalid(CargoInvalidError::Missing { key: "version" }));
     }
 
 
     #[test]
     fn parse_toml_missing_name() {
-        test_invalid!(
-            r#"
+        test_invalid!(r#"
                 [package]
                 version = "0.1.0"
                 authors = ["Somebody", "Somebody Else"]
@@ -223,14 +222,12 @@ mod tests {
                 [lib]
                 crate-type = ["rlib", "dylib"]
             "#,
-            CargoParseError::Invalid(CargoInvalidError::Missing { key: "name" })
-        );
+                      CargoParseError::Invalid(CargoInvalidError::Missing { key: "name" }));
     }
 
     #[test]
     fn parse_toml_not_a_dylib() {
-        test_invalid!(
-            r#"
+        test_invalid!(r#"
                 [package]
                 name = "native"
                 version = "0.1.0"
@@ -239,20 +236,17 @@ mod tests {
                 [lib]
                 crate-type = ["rlib", "staticlib"]
             "#,
-            CargoParseError::Invalid(CargoInvalidError::NotADyLib)
-        );
+                      CargoParseError::Invalid(CargoInvalidError::NotADyLib));
     }
 
     #[test]
     fn parse_toml_missing_lib() {
-        test_invalid!(
-            r#"
+        test_invalid!(r#"
                 [package]
                 name = "native"
                 version = "0.1.0"
                 authors = ["Somebody", "Somebody Else"]
             "#,
-            CargoParseError::Invalid(CargoInvalidError::NotADyLib)
-        );
+                      CargoParseError::Invalid(CargoInvalidError::NotADyLib));
     }
 }
