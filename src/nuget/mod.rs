@@ -1,3 +1,5 @@
+//! Commands for interacting with Nuget packages.
+
 pub mod format;
 
 use std::borrow::Cow;

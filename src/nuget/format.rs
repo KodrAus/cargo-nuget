@@ -1,3 +1,5 @@
+//! Emit package metadata as `nuspec` XML.
+
 use std::io::{Write, Error as IoError};
 use std::borrow::Cow;
 use xml::writer::{EventWriter, XmlEvent, Error as XmlError};

@@ -9,4 +9,9 @@ extern crate toml;
 pub mod cargo;
 pub mod nuget;
 
-fn main() {}
+fn main() {
+	// Parse cargo config
+	// Build crate
+	// Convert config into Nuget
+	// Build nupkg
+}

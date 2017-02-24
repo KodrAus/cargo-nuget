@@ -1,6 +1,11 @@
+# Changes here will break tests
+
 [package]
-name = "native"
+name = "native_test"
 version = "0.1.0"
 authors = ["Somebody", "Somebody Else"]
+
+[lib]
+crate-type = ["dylib"]
 
 [dependencies]
