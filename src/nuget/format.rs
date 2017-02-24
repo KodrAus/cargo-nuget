@@ -7,6 +7,8 @@ use xml::common::XmlVersion;
 use xml::attribute::Attribute;
 use xml::namespace::Namespace;
 
+use super::Buf;
+
 // TODO: May need "Microsoft.NETCore.Platforms": "*"
 
 /// Args for building a `nuspec` metadata file.
@@ -18,12 +20,14 @@ pub struct FormatNuspecArgs<'a> {
     pub description: Option<Cow<'a, str>>,
 }
 
-/// Format the input as a `nuspec` xml buffer.
-pub fn format_nuspec<'a, T>(args: T) -> Result<Vec<u8>, FormatNuspecError>
-    where T: Into<FormatNuspecArgs<'a>>
-{
-    let args = args.into();
+/// A formatted nuspec file.
+#[derive(Debug, PartialEq)]
+pub struct Nuspec {
+    pub xml: Buf
+}
 
+/// Format the input as a `nuspec` xml buffer.
+pub fn format_nuspec<'a>(args: FormatNuspecArgs<'a>) -> Result<Nuspec, FormatNuspecError> {
     let mut writer = EventWriter::new(Vec::new());
 
     // Write the version
@@ -52,7 +56,7 @@ pub fn format_nuspec<'a, T>(args: T) -> Result<Vec<u8>, FormatNuspecError>
         })
     })?;
 
-    Ok(writer.into_inner())
+    Ok(Nuspec { xml: writer.into_inner().into() })
 }
 
 fn elem<W, F>(writer: &mut EventWriter<W>,
@@ -126,10 +130,10 @@ mod tests {
             description: Some(Cow::Borrowed("A description for this package")),
         };
 
-        let xml = format_nuspec(args).unwrap();
+        let nuspec = format_nuspec(args).unwrap();
 
         let expected = r#"<?xml version="1.0" encoding="UTF-8"?><package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd"><metadata><id>native</id><version>0.1.0</version><authors>Someone</authors><description>A description for this package</description></metadata></package>"#;
 
-        assert_eq!(expected, str::from_utf8(&xml).unwrap());
+        assert_eq!(expected, str::from_utf8(&nuspec.xml).unwrap());
     }
 }

@@ -1,36 +1,19 @@
 //! Parse metadata out of a `Cargo.toml`. 
 
 use std::str::{self, Utf8Error};
+use std::collections::BTreeMap;
 use std::io::{Read, Error as IoError};
 use std::borrow::Cow;
 use std::fs::File;
-use toml::{Parser, ParserError};
+use toml::{Parser, ParserError, Value};
 
 /// Args for parsing a `Cargo.toml` package metadata file.
 ///
 /// The source can either be a relative filepath or a byte buffer.
 #[derive(Debug, PartialEq)]
-pub enum ParseCargoArgs<'a> {
-    FromFile { path: &'a str },
+pub enum CargoParseArgs<'a> {
+    FromFile { path: Cow<'a, str> },
     FromBuf { buf: Cow<'a, [u8]> },
-}
-
-/// The type of crate.
-#[derive(Debug, PartialEq)]
-enum CargoCrateType {
-    Unknown,
-    RLib,
-    DyLib,
-}
-
-impl<'a> From<&'a str> for CargoCrateType {
-    fn from(value: &'a str) -> CargoCrateType {
-        match value {
-            "rlib" => CargoCrateType::RLib,
-            "dylib" => CargoCrateType::DyLib,
-            _ => CargoCrateType::Unknown,
-        }
-    }
 }
 
 /// The parsed `Cargo.toml` metadata.
@@ -49,17 +32,13 @@ macro_rules! toml_val {
 }
 
 /// Parse `CargoConfig` from the given source.
-pub fn parse_toml<'a, T>(args: T) -> Result<CargoConfig, CargoParseError>
-    where T: Into<ParseCargoArgs<'a>>
-{
-    let args = args.into();
-
+pub fn parse_toml<'a>(args: CargoParseArgs<'a>) -> Result<CargoConfig, CargoParseError> {
     // Get a buffer to the toml file
     let buf = match args {
         // Read the file to an owned buffer
-        ParseCargoArgs::FromFile { path } => {
+        CargoParseArgs::FromFile { path } => {
             let mut buf = Vec::new();
-            let mut f = File::open(path).map_err(|e| {
+            let mut f = File::open(path.as_ref()).map_err(|e| {
                     CargoParseError::Io {
                         src: path.to_string(),
                         err: e,
@@ -77,7 +56,7 @@ pub fn parse_toml<'a, T>(args: T) -> Result<CargoConfig, CargoParseError>
             Cow::Owned(buf)
         }
         // Just use the buffer given
-        ParseCargoArgs::FromBuf { buf } => buf,
+        CargoParseArgs::FromBuf { buf } => buf,
     };
 
     let utf8 = str::from_utf8(&buf)?;
@@ -86,6 +65,8 @@ pub fn parse_toml<'a, T>(args: T) -> Result<CargoConfig, CargoParseError>
     // Parse the toml config
     match parser.parse() {
         Some(toml) => {
+            ensure_crate_is_dylib(&toml).map_err(|_| CargoInvalidError::NotADyLib)?;
+
             let pkg = toml_val!(toml["package"].as_table())?;
             let name = toml_val!(pkg["name"].as_str())?.into();
             let ver = toml_val!(pkg["version"].as_str())?.into();
@@ -96,23 +77,6 @@ pub fn parse_toml<'a, T>(args: T) -> Result<CargoConfig, CargoParseError>
                 .map(|a| a.into())
                 .collect();
 
-            match toml_val!(toml["lib"].as_table()) {
-                Ok(lib) => {
-                    let tys: Vec<CargoCrateType> = toml_val!(lib["crate-type"].as_slice())?
-                        .iter()
-                        .filter_map(|t| t.as_str())
-                        .map(|t| t.into())
-                        .filter(|t| *t != CargoCrateType::Unknown)
-                        .collect();
-
-                    match tys.contains(&CargoCrateType::DyLib) {
-                        true => Ok(tys),
-                        _ => Err(CargoInvalidError::NotADyLib)
-                    }
-                },
-                _ => Err(CargoInvalidError::NotADyLib)
-            }?;
-
             Ok(CargoConfig {
                 name: name,
                 version: ver,
@@ -121,6 +85,20 @@ pub fn parse_toml<'a, T>(args: T) -> Result<CargoConfig, CargoParseError>
             })
         }
         None => Err(CargoParseError::Toml { errs: parser.errors }),
+    }
+}
+
+fn ensure_crate_is_dylib(toml: &BTreeMap<String, Value>) -> Result<(), CargoInvalidError> {
+    let lib = toml_val!(toml["lib"].as_table())?;
+
+    let is_dylib = toml_val!(lib["crate-type"].as_slice())?
+        .iter()
+        .filter_map(|t| t.as_str())
+        .any(|t| t == "dylib");
+
+    match is_dylib {
+        true => Ok(()),
+        _ => Err(CargoInvalidError::NotADyLib)
     }
 }
 
@@ -174,7 +152,7 @@ mod tests {
 
     #[test]
     fn parse_toml_from_file() {
-        let args = ParseCargoArgs::FromFile { path: "tests/native/Cargo.toml" };
+        let args = CargoParseArgs::FromFile { path: "tests/native/Cargo.toml".into() };
 
         parse_toml(args).unwrap();
     }
@@ -191,7 +169,7 @@ mod tests {
             crate-type = ["rlib", "dylib"]
         "#;
 
-        let args = ParseCargoArgs::FromBuf { buf: toml.as_bytes().into() };
+        let args = CargoParseArgs::FromBuf { buf: toml.as_bytes().into() };
 
         let toml = parse_toml(args).unwrap();
 
@@ -207,7 +185,7 @@ mod tests {
 
     macro_rules! test_invalid {
         ($input:expr, $err:pat) => ({
-            let args = ParseCargoArgs::FromBuf { buf: $input.as_bytes().into() };
+            let args = CargoParseArgs::FromBuf { buf: $input.as_bytes().into() };
 
             let toml = parse_toml(args);
 
@@ -227,7 +205,7 @@ mod tests {
                 authors = ["Somebody", "Somebody Else"]
 
                 [lib]
-                crate-type = ["rlib", "staticlib"]
+                crate-type = ["rlib", "dylib"]
             "#,
             CargoParseError::Invalid(CargoInvalidError::Missing { key: "version" })
         );
@@ -243,7 +221,7 @@ mod tests {
                 authors = ["Somebody", "Somebody Else"]
 
                 [lib]
-                crate-type = ["rlib", "staticlib"]
+                crate-type = ["rlib", "dylib"]
             "#,
             CargoParseError::Invalid(CargoInvalidError::Missing { key: "name" })
         );

@@ -68,13 +68,10 @@ pub struct CargoBuildArgs<'a> {
 #[derive(Debug, Clone, PartialEq)]
 pub struct CargoBuildOutput {
 	pub path: PathBuf,
+	pub target: CargoBuildTarget,
 }
 
-pub fn build<'a, T>(args: T) -> Result<CargoBuildOutput, CargoBuildError> 
-	where T: Into<CargoBuildArgs<'a>>
-{
-	let args = args.into();
-
+pub fn build_lib<'a>(args: CargoBuildArgs<'a>) -> Result<CargoBuildOutput, CargoBuildError> {
     let output = cargo_command(&args)
     	.output()
     	.map_err(|e| CargoBuildError::from(e))?;
@@ -86,7 +83,7 @@ pub fn build<'a, T>(args: T) -> Result<CargoBuildOutput, CargoBuildError>
     let path = output_path(&args);    
 
     match path.exists() {
-    	true => Ok(CargoBuildOutput { path: path }),
+    	true => Ok(CargoBuildOutput { path: path, target: args.target }),
     	false => Err(CargoBuildError::MissingOutput { path: path })
     }
 }
@@ -164,7 +161,7 @@ mod tests {
 	fn cargo_build_debug() {
 		let args = local_args();
 
-		build(args).unwrap();
+		build_lib(args).unwrap();
 	}
 
 	#[test]
@@ -174,7 +171,7 @@ mod tests {
 			..local_args() 
 		};
 
-		build(args).unwrap();
+		build_lib(args).unwrap();
 	}
 
 	#[test]
@@ -184,7 +181,7 @@ mod tests {
 			..local_args() 
 		};
 
-		build(args).unwrap();
+		build_lib(args).unwrap();
 	}
 
 	#[test]
@@ -195,7 +192,7 @@ mod tests {
 			..local_args() 
 		};
 
-		build(args).unwrap();
+		build_lib(args).unwrap();
 	}
 
 	#[test]
@@ -205,7 +202,7 @@ mod tests {
 			..local_args()
 		};
 
-		let result = build(args);
+		let result = build_lib(args);
 
 		match result {
 			Err(CargoBuildError::MissingOutput { .. }) => (),
