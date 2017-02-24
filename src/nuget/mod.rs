@@ -16,17 +16,17 @@ use cargo::{CargoConfig, CargoBuildTarget, CargoBuildOutput};
 pub struct Buf(Vec<u8>);
 
 impl From<Vec<u8>> for Buf {
-	fn from(buf: Vec<u8>) -> Self {
-		Buf(buf)
-	}
+    fn from(buf: Vec<u8>) -> Self {
+        Buf(buf)
+    }
 }
 
 impl Deref for Buf {
-	type Target = [u8];
+    type Target = [u8];
 
-	fn deref(&self) -> &[u8] {
-		&self.0
-	}
+    fn deref(&self) -> &[u8] {
+        &self.0
+    }
 }
 
 impl Debug for Buf {
@@ -46,23 +46,23 @@ impl<'a> From<&'a CargoConfig> for FormatNuspecArgs<'a> {
     }
 }
 
-impl From<CargoBuildTarget> for NugetTarget {
-	fn from(value: CargoBuildTarget) -> NugetTarget {
-		match value {
-			CargoBuildTarget::Local => NugetTarget::local()
-		}
-	}
+impl From<CargoBuildTarget> for (NugetTarget, NugetArch) {
+    fn from(value: CargoBuildTarget) -> (NugetTarget, NugetArch) {
+        match value {
+            CargoBuildTarget::Local => (NugetTarget::local(), NugetArch::local())
+        }
+    }
 }
 
 impl<'a> From<(&'a Nuspec, &'a CargoBuildOutput)> for NugetPackArgs<'a> {
-	fn from((nuspec, build): (&'a Nuspec, &'a CargoBuildOutput)) -> Self {
-		let mut libs = BTreeMap::new();
+    fn from((nuspec, build): (&'a Nuspec, &'a CargoBuildOutput)) -> Self {
+        let mut libs = BTreeMap::new();
 
-		libs.insert(build.target.into(), build.path.as_ref());
+        libs.insert(build.target.into(), build.path.as_ref());
 
-		NugetPackArgs {
-			spec: &nuspec.xml,
-			cargo_libs: libs
-		}
-	}
+        NugetPackArgs {
+            spec: &nuspec.xml,
+            cargo_libs: libs
+        }
+    }
 }

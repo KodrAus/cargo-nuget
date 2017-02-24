@@ -24,11 +24,11 @@ const NUGET_PATH_ARG: &'static str = "nuget-path";
 
 pub fn app<'a, 'b>() -> App<'a, 'b> {
     App::new("Nuget pack for Rust libraries").args(
-    	&[Arg::with_name(CARGO_WORK_DIR_ARG)
+        &[Arg::with_name(CARGO_WORK_DIR_ARG)
               .long("cargo-dir")
               .takes_value(true)
               .help("path to the Rust crate"),
-    	  Arg::with_name(TEST_ARG)
+          Arg::with_name(TEST_ARG)
               .short("t")
               .long("test")
               .help("run cargo and dotnet tests"),
@@ -48,7 +48,7 @@ pub fn app<'a, 'b>() -> App<'a, 'b> {
 }
 
 fn main() {
-	let matches = app().get_matches();
+    let matches = app().get_matches();
 
     match build(matches) {
         Ok(_) => {
@@ -63,18 +63,18 @@ fn main() {
 
 macro_rules! pass {
     ($line:expr => $args:expr => $pass:expr) => ({
-    	use term_painter::ToStyle;
-		use term_painter::Color::*;
+        use term_painter::ToStyle;
+        use term_painter::Color::*;
 
-		let args = $args.into();
+        let args = $args.into();
 
-    	println!("{}\n\n{}", $line, Cyan.bold().paint(format!("input: {:?}\n", args)));
+        println!("{}\n\n{}", $line, Cyan.bold().paint(format!("input: {:?}\n", args)));
 
-    	let result = $pass(args)?;
+        let result = $pass(args)?;
 
-    	println!("{}\n", Cyan.bold().paint(format!("output: {:?}", result)));
+        println!("{}\n", Cyan.bold().paint(format!("output: {:?}", result)));
 
-    	result
+        result
     })
 }
 
@@ -82,10 +82,10 @@ fn build(args: ArgMatches) -> Result<(), Box<Error>> {
     let cargo_toml = pass!("reading cargo manifest" => &args => cargo::parse_toml);
 
     let cargo_lib = pass!("building Rust lib" => (&args, &cargo_toml) => |args| {
-    	let result = cargo::build_lib(args);
-    	println!();
+        let result = cargo::build_lib(args);
+        println!();
 
-    	result
+        result
     });
 
     let nuspec = pass!("building nuspec" => &cargo_toml => nuget::format_nuspec);
