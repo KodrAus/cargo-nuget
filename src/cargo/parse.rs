@@ -22,7 +22,7 @@ pub struct CargoConfig {
     pub name: String,
     pub version: String,
     pub authors: Vec<String>,
-    pub description: Option<String>,
+    pub description: String,
 }
 
 macro_rules! toml_val {
@@ -70,7 +70,7 @@ pub fn parse_toml<'a>(args: CargoParseArgs<'a>) -> Result<CargoConfig, CargoPars
             let pkg = toml_val!(toml["package"].as_table())?;
             let name = toml_val!(pkg["name"].as_str())?.into();
             let ver = toml_val!(pkg["version"].as_str())?.into();
-            let desc = toml_val!(pkg["description"].as_str()).ok().map(|v| v.into());
+            let desc = toml_val!(pkg["description"].as_str())?.into();
             let authors = toml_val!(pkg["authors"].as_slice())
                 ?
                 .iter()

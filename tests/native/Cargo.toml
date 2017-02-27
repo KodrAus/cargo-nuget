@@ -2,8 +2,9 @@
 
 [package]
 name = "native_test"
-version = "0.1.0"
+version = "0.0.1"
 authors = ["Somebody", "Somebody Else"]
+description = "A library for testing cargo nuget"
 
 [lib]
 crate-type = ["dylib"]

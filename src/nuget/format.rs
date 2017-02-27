@@ -2,14 +2,12 @@
 
 use std::io::{Write, Error as IoError};
 use std::borrow::Cow;
-use xml::writer::{EventWriter, XmlEvent, Error as XmlError};
-use xml::common::XmlVersion;
-use xml::attribute::Attribute;
-use xml::namespace::Namespace;
 
-use super::Buf;
+use super::{xml, Buf};
 
-// TODO: May need "Microsoft.NETCore.Platforms": "*"
+const TARGET_FRAMEWORK: &'static str = ".NETStandard1.0";
+const PLATFORM_PACKAGE_ID: &'static str = "Microsoft.NETCore.Platforms";
+const PLATFORM_PACKAGE_VERSION: &'static str = "[1.0.1, )";
 
 /// Args for building a `nuspec` metadata file.
 #[derive(Debug, PartialEq)]
@@ -17,84 +15,60 @@ pub struct FormatNuspecArgs<'a> {
     pub id: Cow<'a, str>,
     pub version: Cow<'a, str>,
     pub authors: Cow<'a, str>,
-    pub description: Option<Cow<'a, str>>,
+    pub description: Cow<'a, str>,
 }
 
 /// A formatted nuspec file.
 #[derive(Debug, PartialEq)]
-pub struct Nuspec {
+pub struct Nuspec<'a> {
+    pub id: Cow<'a, str>,
+    pub version: Cow<'a, str>,
     pub xml: Buf,
 }
 
 /// Format the input as a `nuspec` xml buffer.
-pub fn format_nuspec<'a>(args: FormatNuspecArgs<'a>) -> Result<Nuspec, FormatNuspecError> {
-    let mut writer = EventWriter::new(Vec::new());
+pub fn format_nuspec<'a>(args: FormatNuspecArgs<'a>) -> Result<Nuspec<'a>, FormatNuspecError> {
+    let mut writer = xml::writer()?;
 
-    // Write the version
-    writer.write(XmlEvent::StartDocument {
-            version: XmlVersion::Version10,
-            encoding: None,
-            standalone: None,
-        })?;
+    let pkg_attr = xml::attr("xmlns",
+                             "http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd");
 
-    let pkg_attr = Attribute {
-        name: "xmlns".into(),
-        value: "http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd",
-    };
-
-    elem(&mut writer, "package", &[pkg_attr], |ref mut writer| {
-        elem(writer, "metadata", &[], |ref mut writer| {
-            val(writer, "id", &args.id)?;
-            val(writer, "version", &args.version)?;
-            val(writer, "authors", &args.authors)?;
-
-            if let Some(ref description) = args.description {
-                val(writer, "description", &description)?;
-            }
-
-            Ok(())
+    xml::elem(&mut writer, "package", &[pkg_attr], |ref mut writer| {
+        xml::elem(writer, "metadata", &[], |ref mut writer| {
+            format_meta(&args, writer)?;
+            format_dependencies(writer)
         })
     })?;
 
-    Ok(Nuspec { xml: writer.into_inner().into() })
+    Ok(Nuspec {
+        id: args.id,
+        version: args.version,
+        xml: writer.into_inner().into(),
+    })
 }
 
-fn elem<W, F>(writer: &mut EventWriter<W>,
-              name: &str,
-              attrs: &[Attribute],
-              f: F)
-              -> Result<(), FormatNuspecError>
-    where W: Write,
-          F: Fn(&mut EventWriter<W>) -> Result<(), FormatNuspecError>
-{
-    writer.write(XmlEvent::StartElement {
-            name: name.into(),
-            attributes: Cow::Borrowed(attrs),
-            namespace: Cow::Owned(Namespace::empty()),
-        })?;
-
-    f(writer)?;
-
-    writer.write(XmlEvent::EndElement { name: Some(name.into()) })?;
-
-    Ok(())
+/// Write basic nuspec metadata.
+fn format_meta<'a>(args: &FormatNuspecArgs<'a>,
+                   writer: &mut xml::Writer)
+                   -> Result<(), xml::Error> {
+    xml::val(writer, "id", &args.id)?;
+    xml::val(writer, "version", &args.version)?;
+    xml::val(writer, "authors", &args.authors)?;
+    xml::val(writer, "description", &args.description)
 }
 
-fn val<W, V>(writer: &mut EventWriter<W>, name: &str, value: &V) -> Result<(), FormatNuspecError>
-    where W: Write,
-          V: AsRef<str>
-{
-    writer.write(XmlEvent::StartElement {
-            name: name.into(),
-            attributes: Cow::Borrowed(&[]),
-            namespace: Cow::Owned(Namespace::empty()),
-        })?;
+/// Write package dependencies.
+fn format_dependencies(writer: &mut xml::Writer) -> Result<(), xml::Error> {
+    xml::elem(writer, "dependencies", &[], |ref mut writer| {
+        let group_attr = xml::attr("targetFramework", TARGET_FRAMEWORK);
 
-    writer.write(XmlEvent::Characters(value.as_ref()))?;
+        xml::elem(writer, "group", &[group_attr], |ref mut writer| {
+            let id_attr = xml::attr("id", PLATFORM_PACKAGE_ID);
+            let ver_attr = xml::attr("version", PLATFORM_PACKAGE_VERSION);
 
-    writer.write(XmlEvent::EndElement { name: Some(name.into()) })?;
-
-    Ok(())
+            xml::elem(writer, "dependency", &[id_attr, ver_attr], |_| Ok(()))
+        })
+    })
 }
 
 quick_error!{
@@ -108,7 +82,7 @@ quick_error!{
             from()
         }
         /// An xml formatting error.
-        Xml(err: XmlError) {
+        Xml(err: xml::Error) {
             display("Error writing nuget config\nCaused by: {}", err)
             from()
         }
@@ -127,7 +101,7 @@ mod tests {
             id: Cow::Borrowed("native"),
             version: Cow::Borrowed("0.1.0"),
             authors: Cow::Borrowed("Someone"),
-            description: Some(Cow::Borrowed("A description for this package")),
+            description: Cow::Borrowed("A description for this package"),
         };
 
         let nuspec = format_nuspec(args).unwrap();

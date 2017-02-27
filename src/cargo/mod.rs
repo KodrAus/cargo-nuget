@@ -9,7 +9,7 @@ pub use self::parse::*;
 use std::path::PathBuf;
 use clap::ArgMatches;
 
-use {CARGO_WORK_DIR_ARG, TEST_ARG, RELEASE_ARG};
+use args::{CARGO_WORK_DIR_ARG, TEST_ARG, RELEASE_ARG};
 
 /// Build args to parse toml from program input.
 impl<'a> From<&'a ArgMatches<'a>> for CargoParseArgs<'a> {
