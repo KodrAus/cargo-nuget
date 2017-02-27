@@ -1,6 +1,6 @@
 # `nuget-rs`
 
-> This is a WIP
+> This is a WIP and the process described below doesn't work yet.
 
 This is a tool for packaging Rust libraries as a Nuget package for consuming in .NET. The basic idea is to:
 
@@ -17,6 +17,8 @@ In general the tool should:
 The new .NET Core tooling for packages is a big improvement over the old rubbish we had to deal with. I think it's possible to support development workflows using packages in .NET in a way we couldn't do before. Being able to referernce native assemblies using packages has the benefit of working the exact same way in dev as it would in the wild.
 
 ## The process
+
+Here's the basics workflow we want to support:
 
 1. Write a Cargo-based Rust library
 1. Populate your `Cargo.toml` crate metadata
