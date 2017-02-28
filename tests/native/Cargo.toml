@@ -2,7 +2,7 @@
 
 [package]
 name = "native_test"
-version = "0.0.3"
+version = "0.0.1"
 authors = ["Somebody", "Somebody Else"]
 description = "A library for testing cargo nuget"
 
@@ -10,3 +10,4 @@ description = "A library for testing cargo nuget"
 crate-type = ["dylib"]
 
 [dependencies]
+hyper = "*"

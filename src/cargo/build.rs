@@ -72,12 +72,13 @@ pub struct CargoBuildOutput {
 }
 
 pub fn build_lib<'a>(args: CargoBuildArgs<'a>) -> Result<CargoBuildOutput, CargoBuildError> {
-    let output = cargo_command(&args).output()
-        .map_err(|e| CargoBuildError::from(e))?;
+    // Run a specialised command if given, but always run `cargo build`
+    let cmds = match args.kind {
+        CargoBuildKind::Build => vec![CargoBuildKind::Build],
+        kind => vec![args.kind, CargoBuildKind::Build]
+    };
 
-    if !output.status.success() {
-        Err(CargoBuildError::Run)?;
-    }
+    cargo_commands(args.work_dir, &cmds, args.profile)?;
 
     let path = output_path(&args);
 
@@ -105,23 +106,36 @@ fn output_path<'a>(args: &CargoBuildArgs<'a>) -> PathBuf {
     output
 }
 
-fn cargo_command<'a>(args: &CargoBuildArgs<'a>) -> Command {
+fn cargo_commands(work_dir: &str, kinds: &[CargoBuildKind], profile: CargoBuildProfile) -> Result<(), CargoBuildError> {
+    for kind in kinds {
+        cargo_command(work_dir, *kind, profile)?;
+    }
+
+    Ok(())
+}
+
+fn cargo_command(work_dir: &str, kind: CargoBuildKind, profile: CargoBuildProfile) -> Result<(), CargoBuildError> {
     let mut cargo = Command::new("cargo");
 
-    cargo.current_dir(&args.work_dir);
+    cargo.current_dir(work_dir);
     cargo.stdout(Stdio::inherit());
     cargo.stderr(Stdio::inherit());
 
-    cargo.arg(match args.kind {
+    cargo.arg(match kind {
         CargoBuildKind::Build => "build",
         CargoBuildKind::Test => "test",
     });
 
-    if args.profile == CargoBuildProfile::Release {
+    if profile == CargoBuildProfile::Release {
         cargo.arg("--release");
     }
 
-    cargo
+    let output = cargo.output().map_err(|e| CargoBuildError::from(e))?;
+
+    match output.status.success() {
+        true => Ok(()),
+        false => Err(CargoBuildError::Run)
+    }
 }
 
 quick_error!{
