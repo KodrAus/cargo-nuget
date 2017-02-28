@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NETCore.App" Version="1.0.1" />
-    <PackageReference Include="native_test" Version="*" />
+    <PackageReference Include="native_test" Version="0.0.2" />
   </ItemGroup>
 
 </Project>
