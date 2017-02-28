@@ -14,16 +14,15 @@ pub struct NugetSaveArgs<'a> {
 /// A saved `nupkg`.
 #[derive(Debug, PartialEq)]
 pub struct NupkgPath {
-	pub path: PathBuf
+    pub path: PathBuf,
 }
 
 /// Format the input as a `nuspec` xml buffer.
 pub fn save_nupkg<'a>(args: NugetSaveArgs<'a>) -> Result<NupkgPath, NugetSaveError> {
-    let mut f = OpenOptions::new()
-    	.write(true)
-    	.truncate(true)
-    	.create(true)
-    	.open(&args.path)?;
+    let mut f = OpenOptions::new().write(true)
+        .truncate(true)
+        .create(true)
+        .open(&args.path)?;
 
     f.write_all(&args.nupkg)?;
 

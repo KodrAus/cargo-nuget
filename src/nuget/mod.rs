@@ -18,7 +18,7 @@ use std::ops::Deref;
 use clap::ArgMatches;
 
 use cargo::{CargoConfig, CargoBuildTarget, CargoBuildOutput};
-use args::{NUPKG_DIR_ARG};
+use args::NUPKG_DIR_ARG;
 
 /// A wrapper around an owned byte buffer.
 ///
@@ -88,9 +88,7 @@ impl<'a> From<(&'a Nuspec<'a>, &'a CargoBuildOutput)> for NugetPackArgs<'a> {
 impl<'a> From<(&'a ArgMatches<'a>, &'a Nupkg)> for NugetSaveArgs<'a> {
     fn from((args, nupkg): (&'a ArgMatches<'a>, &'a Nupkg)) -> Self {
         let mut path = match args.value_of(NUPKG_DIR_ARG) {
-            Some(path) => {
-                path.into()
-            },
+            Some(path) => path.into(),
             None => PathBuf::new(),
         };
 
@@ -98,7 +96,7 @@ impl<'a> From<(&'a ArgMatches<'a>, &'a Nupkg)> for NugetSaveArgs<'a> {
 
         NugetSaveArgs {
             path: path,
-            nupkg: &nupkg.buf
+            nupkg: &nupkg.buf,
         }
     }
 }
