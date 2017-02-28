@@ -60,7 +60,7 @@ impl<'a> From<(&'a ArgMatches<'a>, &'a CargoConfig)> for CargoBuildArgs<'a> {
             None => "",
         };
 
-        build::CargoBuildArgs {
+        CargoBuildArgs {
             work_dir: path,
             output_name: &cargo.name,
             kind: args.into(),

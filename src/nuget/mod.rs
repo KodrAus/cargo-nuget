@@ -2,16 +2,23 @@
 
 mod format;
 mod pack;
+mod save;
+
 mod xml;
 
 pub use self::format::*;
 pub use self::pack::*;
+pub use self::save::*;
 
+use std::path::PathBuf;
 use std::fmt::{Debug, Formatter, Error as FmtError};
 use std::collections::BTreeMap;
 use std::borrow::Cow;
 use std::ops::Deref;
+use clap::ArgMatches;
+
 use cargo::{CargoConfig, CargoBuildTarget, CargoBuildOutput};
+use args::{NUPKG_DIR_ARG};
 
 /// A wrapper around an owned byte buffer.
 ///
@@ -73,6 +80,25 @@ impl<'a> From<(&'a Nuspec<'a>, &'a CargoBuildOutput)> for NugetPackArgs<'a> {
             version: Cow::Borrowed(&nuspec.version),
             spec: &nuspec.xml,
             cargo_libs: libs,
+        }
+    }
+}
+
+/// Build args to run a cargo command from program input and toml config.
+impl<'a> From<(&'a ArgMatches<'a>, &'a Nupkg)> for NugetSaveArgs<'a> {
+    fn from((args, nupkg): (&'a ArgMatches<'a>, &'a Nupkg)) -> Self {
+        let mut path = match args.value_of(NUPKG_DIR_ARG) {
+            Some(path) => {
+                path.into()
+            },
+            None => PathBuf::new(),
+        };
+
+        path.push(&nupkg.name);
+
+        NugetSaveArgs {
+            path: path,
+            nupkg: &nupkg.buf
         }
     }
 }

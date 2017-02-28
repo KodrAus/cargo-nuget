@@ -97,9 +97,9 @@ pub struct NugetPackArgs<'a> {
 /// A formatted `nupkg`.
 #[derive(Debug, PartialEq)]
 pub struct Nupkg {
-    name: String,
-    rids: Vec<Cow<'static, str>>,
-    buf: Buf,
+    pub name: String,
+    pub rids: Vec<Cow<'static, str>>,
+    pub buf: Buf,
 }
 
 fn options() -> FileOptions {
@@ -146,9 +146,6 @@ pub fn pack<'a>(args: NugetPackArgs<'a>) -> Result<Nupkg, NugetPackError> {
 
     let rids = pkgs.into_iter().map(|(rid, _)| rid).collect();
     let name = format!("{}.{}.nupkg", args.id, args.version);
-
-    let mut f = File::create(&name).unwrap();
-    f.write_all(&mut buf).unwrap();
 
     Ok(Nupkg {
         name: name,

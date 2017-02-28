@@ -61,9 +61,9 @@ fn build(args: ArgMatches) -> Result<(), Box<Error>> {
 
     let nuspec = pass!("building nuspec" => &cargo_toml => nuget::format_nuspec);
 
-    let _nupkg = pass!("building nupkg" => (&nuspec, &cargo_lib) => nuget::pack);
+    let nupkg = pass!("building nupkg" => (&nuspec, &cargo_lib) => nuget::pack);
 
-    // TODO: Write nupkg to file
+    pass!("saving nupkg" => (&args, &nupkg) =>  nuget::save_nupkg);
 
     Ok(())
 }
