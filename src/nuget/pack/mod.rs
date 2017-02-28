@@ -1,4 +1,3 @@
-use std::fmt::{Debug, Formatter, Error as FmtError};
 use std::io::{copy, Cursor, Write, Seek, Error as IoError};
 use std::fs::File;
 use std::path::{Path, PathBuf};
@@ -66,7 +65,9 @@ impl NugetArch {
     }
 }
 
+#[allow(dead_code)]
 const X86_ARCH: NugetArch = NugetArch::x86;
+#[allow(dead_code)]
 const X64_ARCH: NugetArch = NugetArch::x64;
 
 #[cfg(target_arch = "x86")]
@@ -118,7 +119,7 @@ pub fn pack<'a>(args: NugetPackArgs<'a>) -> Result<Nupkg, NugetPackError> {
 
     let mut writer = ZipWriter::new(Cursor::new(Vec::new()));
 
-    let mut nuspec_path = {
+    let nuspec_path = {
         let mut path = PathBuf::new();
         path.set_file_name(args.id.as_ref());
         path.set_extension("nuspec");
@@ -133,7 +134,7 @@ pub fn pack<'a>(args: NugetPackArgs<'a>) -> Result<Nupkg, NugetPackError> {
     writer.write_all(&args.spec)?;
 
     for &(ref rid, ref lib_path) in &pkgs {
-        write_lib(&mut writer, rid, lib_path).map_err(|e| {
+        write_lib(&mut writer, &args.id, rid, lib_path).map_err(|e| {
                 NugetPackError::WriteLib {
                     rid: rid.to_string(),
                     lib_path: lib_path.to_string_lossy().into_owned(),
@@ -142,7 +143,7 @@ pub fn pack<'a>(args: NugetPackArgs<'a>) -> Result<Nupkg, NugetPackError> {
             })?;
     }
 
-    let mut buf = writer.finish()?.into_inner();
+    let buf = writer.finish()?.into_inner();
 
     let rids = pkgs.into_iter().map(|(rid, _)| rid).collect();
     let name = format!("{}.{}.nupkg", args.id, args.version);
@@ -156,19 +157,21 @@ pub fn pack<'a>(args: NugetPackArgs<'a>) -> Result<Nupkg, NugetPackError> {
 
 /// Write `/runtimes/{rid}/native/{lib}`.
 fn write_lib<W>(writer: &mut ZipWriter<W>,
+                id: &str,
                 rid: &str,
                 lib_path: &Path)
                 -> Result<(), NugetWriteLibError>
     where W: Write + Seek
 {
-    let file_name = lib_path.file_name()
-        .ok_or(NugetWriteLibError::BadPath { path: lib_path.to_string_lossy().into_owned() })?;
-
     let mut path = PathBuf::new();
     path.push("runtimes");
     path.push(rid);
     path.push("native");
-    path.push(file_name);
+    path.push(id);
+
+    if let Some(extension) = lib_path.extension() {
+        path.set_extension(extension);
+    }
 
     writer.start_file(path.to_string_lossy(), options())?;
 

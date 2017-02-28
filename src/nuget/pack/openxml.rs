@@ -52,7 +52,7 @@ pub fn relationships(nuspec_path: &Path) -> Result<(PathBuf, Vec<u8>), xml::Erro
         let ty = xml::attr("Type",
                            "http://schemas.microsoft.com/packaging/2010/07/manifest");
 
-        let target = format!("/{:?}", nuspec_path);
+        let target = format!("/{}", nuspec_path.to_string_lossy());
         let target = xml::attr("Target", &target);
 
         xml::elem(writer, "Relationship", &[ty, target], |_| Ok(()))

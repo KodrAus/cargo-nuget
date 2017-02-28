@@ -1,4 +1,4 @@
-use clap::{App, Arg, ArgMatches};
+use clap::{App, Arg};
 
 pub const CARGO_WORK_DIR_ARG: &'static str = "cargo-dir";
 pub const TEST_ARG: &'static str = "test";

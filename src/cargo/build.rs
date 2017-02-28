@@ -34,8 +34,11 @@ pub enum CargoBuildTarget {
     Local,
 }
 
+#[allow(dead_code)]
 const WINDOWS_EXTENSION: &'static str = "dll";
+#[allow(dead_code)]
 const UNIX_EXTENSION: &'static str = "so";
+#[allow(dead_code)]
 const MACOS_EXTENSION: &'static str = "dylib";
 
 #[cfg(windows)]
@@ -45,11 +48,26 @@ const LOCAL_EXTENSION: &'static str = UNIX_EXTENSION;
 #[cfg(macos)]
 const LOCAL_EXTENSION: &'static str = MACOS_EXTENSION;
 
+#[allow(dead_code)]
+const UNIX_PREFIX: &'static str = "lib";
+
+#[cfg(unix)]
+const LOCAL_PREFIX: Option<&'static str> = Some(UNIX_PREFIX);
+#[cfg(not(unix))]
+const LOCAL_PREFIX: Option<&'static str> = None;
+
 impl CargoBuildTarget {
     /// Get the platform specific extension for the build output.
     fn extension(&self) -> &'static str {
         match *self {
             CargoBuildTarget::Local => LOCAL_EXTENSION,
+        }
+    }
+
+    /// Get the platform specific prefix for the build output.
+    fn prefix(&self) -> Option<&'static str> {
+        match *self {
+            CargoBuildTarget::Local => LOCAL_PREFIX
         }
     }
 }
@@ -75,7 +93,7 @@ pub fn build_lib<'a>(args: CargoBuildArgs<'a>) -> Result<CargoBuildOutput, Cargo
     // Run a specialised command if given, but always run `cargo build`
     let cmds = match args.kind {
         CargoBuildKind::Build => vec![CargoBuildKind::Build],
-        kind => vec![args.kind, CargoBuildKind::Build]
+        kind => vec![kind, CargoBuildKind::Build]
     };
 
     cargo_commands(args.work_dir, &cmds, args.profile)?;
@@ -97,10 +115,15 @@ pub fn build_lib<'a>(args: CargoBuildArgs<'a>) -> Result<CargoBuildOutput, Cargo
 fn output_path<'a>(args: &CargoBuildArgs<'a>) -> PathBuf {
     let mut output = PathBuf::new();
 
+    let name = match args.target.prefix() {
+        Some(prefix) => format!("{}{}", prefix, args.output_name),
+        None => String::from(args.output_name)
+    };
+
     output.push(args.work_dir);
     output.push("target");
     output.push(args.profile.path());
-    output.push(args.output_name);
+    output.push(name);
     output.set_extension(args.target.extension());
 
     output

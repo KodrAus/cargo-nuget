@@ -1,6 +1,6 @@
 //! Emit package metadata as `nuspec` XML.
 
-use std::io::{Write, Error as IoError};
+use std::io::Error as IoError;
 use std::borrow::Cow;
 
 use super::{xml, Buf};

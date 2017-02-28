@@ -15,7 +15,7 @@ use std::error::Error;
 use term_painter::ToStyle;
 use term_painter::Color::*;
 
-use clap::{App, Arg, ArgMatches};
+use clap::ArgMatches;
 
 fn main() {
     let args = args::app().get_matches();
