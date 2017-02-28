@@ -2,7 +2,7 @@
 
 [package]
 name = "native_test"
-version = "0.0.2"
+version = "0.0.4"
 authors = ["Somebody", "Somebody Else"]
 description = "A library for testing cargo nuget"
 
