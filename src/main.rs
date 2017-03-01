@@ -59,7 +59,7 @@ fn build(args: ArgMatches) -> Result<(), Box<Error>> {
         result
     });
 
-    let nuspec = pass!("building nuspec" => &cargo_toml => nuget::format_nuspec);
+    let nuspec = pass!("building nuspec" => &cargo_toml => nuget::spec);
 
     let nupkg = pass!("building nupkg" => (&nuspec, &cargo_lib) => nuget::pack);
 

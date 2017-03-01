@@ -1,12 +1,12 @@
 //! Commands for interacting with Nuget packages.
 
-mod format;
+mod spec;
 mod pack;
 mod save;
 
-mod xml;
+mod util;
 
-pub use self::format::*;
+pub use self::spec::*;
 pub use self::pack::*;
 pub use self::save::*;
 
@@ -48,9 +48,9 @@ impl Debug for Buf {
 }
 
 /// Build args to format a nuspec from cargo toml.
-impl<'a> From<&'a CargoConfig> for FormatNuspecArgs<'a> {
+impl<'a> From<&'a CargoConfig> for NugetSpecArgs<'a> {
     fn from(cargo: &'a CargoConfig) -> Self {
-        FormatNuspecArgs {
+        NugetSpecArgs {
             id: Cow::Borrowed(&cargo.name),
             version: Cow::Borrowed(&cargo.version),
             authors: Cow::Owned((&cargo.authors).join(", ")),

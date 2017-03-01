@@ -3,7 +3,8 @@
 use std::io::Error as IoError;
 use std::borrow::Cow;
 
-use super::{xml, Buf};
+use super::Buf;
+use super::util::xml;
 
 const TARGET_FRAMEWORK: &'static str = ".NETStandard1.0";
 const PLATFORM_PACKAGE_ID: &'static str = "Microsoft.NETCore.Platforms";
@@ -11,7 +12,7 @@ const PLATFORM_PACKAGE_VERSION: &'static str = "[1.0.1, )";
 
 /// Args for building a `nuspec` metadata file.
 #[derive(Debug, PartialEq)]
-pub struct FormatNuspecArgs<'a> {
+pub struct NugetSpecArgs<'a> {
     pub id: Cow<'a, str>,
     pub version: Cow<'a, str>,
     pub authors: Cow<'a, str>,
@@ -27,7 +28,7 @@ pub struct Nuspec<'a> {
 }
 
 /// Format the input as a `nuspec` xml buffer.
-pub fn format_nuspec<'a>(args: FormatNuspecArgs<'a>) -> Result<Nuspec<'a>, FormatNuspecError> {
+pub fn spec<'a>(args: NugetSpecArgs<'a>) -> Result<Nuspec<'a>, NugetSpecError> {
     let mut writer = xml::writer()?;
 
     let pkg_attr = xml::attr("xmlns",
@@ -48,7 +49,7 @@ pub fn format_nuspec<'a>(args: FormatNuspecArgs<'a>) -> Result<Nuspec<'a>, Forma
 }
 
 /// Write basic nuspec metadata.
-fn format_meta<'a>(args: &FormatNuspecArgs<'a>,
+fn format_meta<'a>(args: &NugetSpecArgs<'a>,
                    writer: &mut xml::Writer)
                    -> Result<(), xml::Error> {
     xml::val(writer, "id", &args.id)?;
@@ -74,7 +75,7 @@ fn format_dependencies(writer: &mut xml::Writer) -> Result<(), xml::Error> {
 quick_error!{
     /// An error encountered formatting a Nuspec.
     #[derive(Debug)]
-    pub enum FormatNuspecError {
+    pub enum NugetSpecError {
         /// An io-related error writing the nuspec.
         Io(err: IoError) {
             cause(err)
@@ -97,14 +98,14 @@ mod tests {
 
     #[test]
     fn format_nuget() {
-        let args = FormatNuspecArgs {
+        let args = NugetSpecArgs {
             id: Cow::Borrowed("native"),
             version: Cow::Borrowed("0.1.0"),
             authors: Cow::Borrowed("Someone"),
             description: Cow::Borrowed("A description for this package"),
         };
 
-        let nuspec = format_nuspec(args).unwrap();
+        let nuspec = spec(args).unwrap();
 
         let expected = r#"<?xml version="1.0" encoding="UTF-8"?><package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd"><metadata><id>native</id><version>0.1.0</version><authors>Someone</authors><description>A description for this package</description></metadata></package>"#;
 

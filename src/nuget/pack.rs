@@ -7,9 +7,8 @@ use zip::CompressionMethod;
 use zip::write::{ZipWriter, FileOptions};
 use zip::result::ZipError;
 
-use super::{xml, Buf};
-
-mod openxml;
+use super::Buf;
+use super::util::{xml, openxml};
 
 /// A target platform for the nuget package.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]

@@ -2,7 +2,7 @@
 
 use std::path::{Path, PathBuf};
 
-use nuget::xml;
+use super::xml;
 
 pub fn content_types() -> Result<(PathBuf, Vec<u8>), xml::Error> {
     let mut writer = xml::writer()?;
