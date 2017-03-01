@@ -1,14 +1,43 @@
 //! Emit package metadata as `nuspec` XML.
 
+use std::ops::Deref;
 use std::io::Error as IoError;
 use std::borrow::Cow;
 
 use super::Buf;
 use super::util::xml;
 
-const TARGET_FRAMEWORK: &'static str = ".NETStandard1.0";
-const PLATFORM_PACKAGE_ID: &'static str = "Microsoft.NETCore.Platforms";
-const PLATFORM_PACKAGE_VERSION: &'static str = "[1.0.1, )";
+/// Nuget package dependency.
+#[derive(Debug, PartialEq)]
+pub struct NugetDependency<'a> {
+    pub id: Cow<'a, str>,
+    pub version: Cow<'a, str>,
+}
+
+/// A collection of nuget package dependencies.
+#[derive(Debug, PartialEq)]
+pub struct NugetDependencies<'a>(Vec<NugetDependency<'a>>);
+
+/// The default set of dependencies includes `Microsoft.NETCore.Platforms`
+/// which is needed to resolve the right native binary at runtime.
+impl<'a> Default for NugetDependencies<'a> {
+    fn default() -> Self {
+        NugetDependencies(vec![
+            NugetDependency {
+                id: "Microsoft.NETCore.Platforms".into(),
+                version: "[1.0.1, )".into(),
+            }
+        ])
+    }
+}
+
+impl<'a> Deref for NugetDependencies<'a> {
+    type Target = Vec<NugetDependency<'a>>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 
 /// Args for building a `nuspec` metadata file.
 #[derive(Debug, PartialEq)]
@@ -17,6 +46,7 @@ pub struct NugetSpecArgs<'a> {
     pub version: Cow<'a, str>,
     pub authors: Cow<'a, str>,
     pub description: Cow<'a, str>,
+    pub dependencies: NugetDependencies<'a>,
 }
 
 /// A formatted nuspec file.
@@ -37,7 +67,7 @@ pub fn spec<'a>(args: NugetSpecArgs<'a>) -> Result<Nuspec<'a>, NugetSpecError> {
     xml::elem(&mut writer, "package", &[pkg_attr], |ref mut writer| {
         xml::elem(writer, "metadata", &[], |ref mut writer| {
             format_meta(&args, writer)?;
-            format_dependencies(writer)
+            format_dependencies(&args.dependencies, writer)
         })
     })?;
 
@@ -59,16 +89,16 @@ fn format_meta<'a>(args: &NugetSpecArgs<'a>,
 }
 
 /// Write package dependencies.
-fn format_dependencies(writer: &mut xml::Writer) -> Result<(), xml::Error> {
+fn format_dependencies<'a>(dependencies: &[NugetDependency<'a>], writer: &mut xml::Writer) -> Result<(), xml::Error> {
     xml::elem(writer, "dependencies", &[], |ref mut writer| {
-        let group_attr = xml::attr("targetFramework", TARGET_FRAMEWORK);
+        for dependency in dependencies {
+            let id_attr = xml::attr("id", &dependency.id);
+            let ver_attr = xml::attr("version", &dependency.version);
 
-        xml::elem(writer, "group", &[group_attr], |ref mut writer| {
-            let id_attr = xml::attr("id", PLATFORM_PACKAGE_ID);
-            let ver_attr = xml::attr("version", PLATFORM_PACKAGE_VERSION);
+            xml::elem(writer, "dependency", &[id_attr, ver_attr], |_| Ok(()))?;
+        }
 
-            xml::elem(writer, "dependency", &[id_attr, ver_attr], |_| Ok(()))
-        })
+        Ok(())
     })
 }
 
