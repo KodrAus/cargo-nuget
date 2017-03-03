@@ -18,11 +18,11 @@ pub enum CargoParseArgs<'a> {
 
 /// The parsed `Cargo.toml` metadata.
 #[derive(Debug, PartialEq)]
-pub struct CargoConfig {
-    pub name: String,
-    pub version: String,
-    pub authors: Vec<String>,
-    pub description: String,
+pub struct CargoConfig<'a> {
+    pub name: Cow<'a, str>,
+    pub version: Cow<'a, str>,
+    pub authors: Vec<Cow<'a, str>>,
+    pub description: Cow<'a, str>,
 }
 
 macro_rules! toml_val {
@@ -32,7 +32,7 @@ macro_rules! toml_val {
 }
 
 /// Parse `CargoConfig` from the given source.
-pub fn parse_toml<'a>(args: CargoParseArgs<'a>) -> Result<CargoConfig, CargoParseError> {
+pub fn parse_toml<'a>(args: CargoParseArgs<'a>) -> Result<CargoConfig<'a>, CargoParseError> {
     // Get a buffer to the toml file
     let buf = match args {
         // Read the file to an owned buffer
@@ -68,21 +68,24 @@ pub fn parse_toml<'a>(args: CargoParseArgs<'a>) -> Result<CargoConfig, CargoPars
             ensure_crate_is_dylib(&toml).map_err(|_| CargoInvalidError::NotADyLib)?;
 
             let pkg = toml_val!(toml["package"].as_table())?;
-            let name = toml_val!(pkg["name"].as_str())?.into();
-            let ver = toml_val!(pkg["version"].as_str())?.into();
-            let desc = toml_val!(pkg["description"].as_str())?.into();
+            let name = toml_val!(pkg["name"].as_str())?.to_owned();
+            let ver = toml_val!(pkg["version"].as_str())?.to_owned();
+            let desc = toml_val!(pkg["description"].as_str())?.to_owned();
             let authors = toml_val!(pkg["authors"].as_slice())
                 ?
                 .iter()
                 .filter_map(|a| a.as_str())
-                .map(|a| a.into())
+                .map(|a| {
+                    let author = a.to_owned();
+                    Cow::Owned(author)
+                })
                 .collect();
 
             Ok(CargoConfig {
-                name: name,
-                version: ver,
+                name: Cow::Owned(name),
+                version: Cow::Owned(ver),
                 authors: authors,
-                description: desc,
+                description: Cow::Owned(desc),
             })
         }
         None => Err(CargoParseError::Toml { errs: parser.errors }),

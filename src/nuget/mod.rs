@@ -48,8 +48,8 @@ impl Debug for Buf {
 }
 
 /// Build args to format a nuspec from cargo toml.
-impl<'a> From<&'a CargoConfig> for NugetSpecArgs<'a> {
-    fn from(cargo: &'a CargoConfig) -> Self {
+impl<'a> From<&'a CargoConfig<'a>> for NugetSpecArgs<'a> {
+    fn from(cargo: &'a CargoConfig<'a>) -> Self {
         NugetSpecArgs {
             id: Cow::Borrowed(&cargo.name),
             version: Cow::Borrowed(&cargo.version),
@@ -70,11 +70,11 @@ impl From<CargoBuildTarget> for NugetTarget {
 }
 
 /// Build args to pack a nupkg from nuspec and cargo build.
-impl<'a> From<(&'a Nuspec<'a>, &'a CargoBuildOutput)> for NugetPackArgs<'a> {
-    fn from((nuspec, build): (&'a Nuspec, &'a CargoBuildOutput)) -> Self {
+impl<'a> From<(&'a Nuspec<'a>, &'a CargoBuildOutput<'a>)> for NugetPackArgs<'a> {
+    fn from((nuspec, build): (&'a Nuspec, &'a CargoBuildOutput<'a>)) -> Self {
         let mut libs = BTreeMap::new();
 
-        libs.insert(build.target.into(), build.path.as_ref());
+        libs.insert(build.target.into(), Cow::Borrowed(build.path.as_ref()));
 
         NugetPackArgs {
             id: Cow::Borrowed(&nuspec.id),
@@ -86,17 +86,17 @@ impl<'a> From<(&'a Nuspec<'a>, &'a CargoBuildOutput)> for NugetPackArgs<'a> {
 }
 
 /// Build args to run a cargo command from program input and toml config.
-impl<'a> From<(&'a ArgMatches<'a>, &'a Nupkg)> for NugetSaveArgs<'a> {
-    fn from((args, nupkg): (&'a ArgMatches<'a>, &'a Nupkg)) -> Self {
+impl<'a> From<(&'a ArgMatches<'a>, &'a Nupkg<'a>)> for NugetSaveArgs<'a> {
+    fn from((args, nupkg): (&'a ArgMatches<'a>, &'a Nupkg<'a>)) -> Self {
         let mut path = match args.value_of(NUPKG_DIR_ARG) {
             Some(path) => path.into(),
             None => PathBuf::new(),
         };
 
-        path.push(&nupkg.name);
+        path.push(nupkg.name.as_ref());
 
         NugetSaveArgs {
-            path: path,
+            path: path.into(),
             nupkg: &nupkg.buf,
         }
     }

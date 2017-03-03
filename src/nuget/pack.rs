@@ -91,14 +91,14 @@ pub struct NugetPackArgs<'a> {
     pub id: Cow<'a, str>,
     pub version: Cow<'a, str>,
     pub spec: &'a Buf,
-    pub cargo_libs: BTreeMap<NugetTarget, &'a Path>,
+    pub cargo_libs: BTreeMap<NugetTarget, Cow<'a, Path>>,
 }
 
 /// A formatted `nupkg`.
 #[derive(Debug, PartialEq)]
-pub struct Nupkg {
-    pub name: String,
-    pub rids: Vec<Cow<'static, str>>,
+pub struct Nupkg<'a> {
+    pub name: Cow<'a, str>,
+    pub rids: Vec<Cow<'a, str>>,
     pub buf: Buf,
 }
 
@@ -148,7 +148,7 @@ pub fn pack<'a>(args: NugetPackArgs<'a>) -> Result<Nupkg, NugetPackError> {
     let name = format!("{}.{}.nupkg", args.id, args.version);
 
     Ok(Nupkg {
-        name: name,
+        name: name.into(),
         rids: rids,
         buf: buf.into(),
     })

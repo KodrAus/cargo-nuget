@@ -1,6 +1,7 @@
 //! Run a `cargo` command that builds some output.
 
-use std::path::PathBuf;
+use std::borrow::Cow;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::io::Error as IoError;
 
@@ -75,8 +76,8 @@ impl CargoBuildTarget {
 /// Args for running a `cargo` command for the native package.
 #[derive(Debug, Clone, PartialEq)]
 pub struct CargoBuildArgs<'a> {
-    pub work_dir: &'a str,
-    pub output_name: &'a str,
+    pub work_dir: Cow<'a, Path>,
+    pub output_name: Cow<'a, str>,
     pub kind: CargoBuildKind,
     pub target: CargoBuildTarget,
     pub profile: CargoBuildProfile,
@@ -84,26 +85,26 @@ pub struct CargoBuildArgs<'a> {
 
 /// The output of the `cargo` command.
 #[derive(Debug, Clone, PartialEq)]
-pub struct CargoBuildOutput {
-    pub path: PathBuf,
+pub struct CargoBuildOutput<'a> {
+    pub path: Cow<'a, Path>,
     pub target: CargoBuildTarget,
 }
 
-pub fn build_lib<'a>(args: CargoBuildArgs<'a>) -> Result<CargoBuildOutput, CargoBuildError> {
+pub fn build_lib<'a>(args: CargoBuildArgs<'a>) -> Result<CargoBuildOutput<'a>, CargoBuildError> {
     // Run a specialised command if given, but always run `cargo build`
     let cmds = match args.kind {
         CargoBuildKind::Build => vec![CargoBuildKind::Build],
         kind => vec![kind, CargoBuildKind::Build]
     };
 
-    cargo_commands(args.work_dir, &cmds, args.profile)?;
+    cargo_commands(&args.work_dir, &cmds, args.profile)?;
 
     let path = output_path(&args);
 
     match path.exists() {
         true => {
             Ok(CargoBuildOutput {
-                path: path,
+                path: path.into(),
                 target: args.target,
             })
         }
@@ -116,20 +117,23 @@ fn output_path<'a>(args: &CargoBuildArgs<'a>) -> PathBuf {
     let mut output = PathBuf::new();
 
     let name = match args.target.prefix() {
-        Some(prefix) => format!("{}{}", prefix, args.output_name),
-        None => String::from(args.output_name)
+        Some(prefix) => {
+            let name = format!("{}{}", prefix, args.output_name);
+            Cow::Owned(name)
+        },
+        None => Cow::Borrowed(args.output_name.as_ref())
     };
 
-    output.push(args.work_dir);
+    output.push(args.work_dir.as_ref());
     output.push("target");
     output.push(args.profile.path());
-    output.push(name);
+    output.push(name.as_ref());
     output.set_extension(args.target.extension());
 
     output
 }
 
-fn cargo_commands(work_dir: &str, kinds: &[CargoBuildKind], profile: CargoBuildProfile) -> Result<(), CargoBuildError> {
+fn cargo_commands(work_dir: &Path, kinds: &[CargoBuildKind], profile: CargoBuildProfile) -> Result<(), CargoBuildError> {
     for kind in kinds {
         cargo_command(work_dir, *kind, profile)?;
     }
@@ -137,7 +141,7 @@ fn cargo_commands(work_dir: &str, kinds: &[CargoBuildKind], profile: CargoBuildP
     Ok(())
 }
 
-fn cargo_command(work_dir: &str, kind: CargoBuildKind, profile: CargoBuildProfile) -> Result<(), CargoBuildError> {
+fn cargo_command(work_dir: &Path, kind: CargoBuildKind, profile: CargoBuildProfile) -> Result<(), CargoBuildError> {
     let mut cargo = Command::new("cargo");
 
     cargo.current_dir(work_dir);
