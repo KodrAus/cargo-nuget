@@ -31,7 +31,8 @@ Some additional options may be supplied:
 
 ```shell
 $ cargo nuget
-$ cargo nuget --out=target/nuget/my-pkg.nupkg
+$ cargo nuget --cargo-dir=some-crate/path/
+$ cargo nuget --nupkg-dir=target/nuget/
 $ cargo nuget --release
 ```
 
@@ -39,7 +40,7 @@ $ cargo nuget --release
 
 ```
 $ cargo nuget cross
-$ cargo nuget cross --release --target=windows --target=osx
+$ cargo nuget cross --release --target=win-x64 --target=osx
 ```
 
 ### In summary
@@ -47,7 +48,7 @@ $ cargo nuget cross --release --target=windows --target=osx
 Run `cargo nuget` with any of:
 
 - `release` to run a release build
-- `out` to specify the output path for the package
+- `nupkg-dir` to specify the output path for the package
 
 Additionally, when running `cargo nuget cross`:
 

@@ -11,7 +11,7 @@ This will produce a package, like `native_test.0.0.1.nupkg` and save it in the `
 ```shell
 $ rm -r ~/.nuget/packages/native_test/
 $ cd tests/dotnet
-$ dotnet restore
+$ dotnet restore --configfile ./Nuget.config
 ```
 
 Manually clearing the package from `nuget`s cache is the only way to force it to reinstall if the version number hasn't changed. Maybe we can add a `clear-cache` command to `cargo-nuget`? Although that doesn't seem like its responsibility.
