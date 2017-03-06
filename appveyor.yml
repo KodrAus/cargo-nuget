@@ -1,5 +1,5 @@
 environment:
-  CLI_VERSION: Latest
+  CLI_VERSION: 1.0.0-rc4-004771
   matrix:
   - TARGET: x86_64-pc-windows-msvc
   - TARGET: i686-pc-windows-msvc
