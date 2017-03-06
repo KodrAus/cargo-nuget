@@ -1,6 +1,9 @@
 sudo: false
 language: rust
 
+env:
+  global: DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
+
 matrix:
   include:
     # Linux
