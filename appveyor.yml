@@ -27,7 +27,7 @@ test_script:
   - cargo build --verbose
   - cargo test --verbose
   # Test pack and restore
-  - ps: .\target\debug\nuget.exe --cargo-dir .\tests\native\ --nupkg-dir .\tests\feed\
+  - ps: .\target\debug\nuget.exe --cargo-dir .\tests\native\ --nupkg-dir .\tests\feed\ 2>$null
   - ps: cd tests\dotnet
   - ps: dotnet restore --configfile .\Nuget.config
   - ps: dotnet run
