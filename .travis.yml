@@ -16,16 +16,17 @@ matrix:
     - os: osx
       language: rust
       env:
-      - CLI_URL=https://go.microsoft.com/fwlink/?linkid=841692 # rc4-004771 x64
+      - DOTNET_SDK_VERSION=1.0.0-rc4-004771
 
 before_script:
   # Install the dotnet cli for osx
   - |
-     if [[ "$TRAVIS_OS_NAME" == "osx" ]]; 
-       then curl $CLI_URL -L --output dotnet-install.tar.gz &&
-       mkdir $HOME/dotnet &&
-       tar zxf dotnet-install.tar.gz -C $HOME/dotnet &&
-       export PATH=$HOME/dotnet:$PATH; fi
+    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; 
+      export DOTNET_SDK_DOWNLOAD_URL=https://dotnetcli.blob.core.windows.net/dotnet/Sdk/$DOTNET_SDK_VERSION/dotnet-dev-osx-x64.$DOTNET_SDK_VERSION.tar.gz
+      then curl -SL $DOTNET_SDK_DOWNLOAD_URL --output dotnet.tar.gz &&
+      mkdir $HOME/dotnet &&
+      tar zxf dotnet.tar.gz -C $HOME/dotnet &&
+      export PATH=$HOME/dotnet:$PATH; fi
 
 script:
   - ./ci/$TRAVIS_OS_NAME/test.sh
