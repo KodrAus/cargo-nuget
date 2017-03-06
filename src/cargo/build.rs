@@ -206,6 +206,7 @@ mod tests {
             kind: CargoBuildKind::Build,
             target: CargoBuildTarget::Local,
             profile: CargoBuildProfile::Debug,
+            quiet: true,
         }
     }
 
