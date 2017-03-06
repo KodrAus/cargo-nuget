@@ -8,14 +8,12 @@ matrix:
   include:
     # Linux
     - os: linux
-      env: 
-      - TARGET=x86_64-unknown-linux-gnu
+      env:
       - CLI_URL=https://go.microsoft.com/fwlink/?linkid=841687
 
     # OSX
     - os: osx
       env:
-      - TARGET=x86_64-apple-darwin
       - CLI_URL=https://go.microsoft.com/fwlink/?linkid=841692
 
 before_script:
