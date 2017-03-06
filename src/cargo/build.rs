@@ -78,6 +78,7 @@ impl CargoBuildTarget {
 pub struct CargoBuildArgs<'a> {
     pub work_dir: Cow<'a, Path>,
     pub output_name: Cow<'a, str>,
+    pub quiet: bool,
     pub kind: CargoBuildKind,
     pub target: CargoBuildTarget,
     pub profile: CargoBuildProfile,
@@ -97,7 +98,7 @@ pub fn build_lib<'a>(args: CargoBuildArgs<'a>) -> Result<CargoBuildOutput<'a>, C
         kind => vec![kind, CargoBuildKind::Build]
     };
 
-    cargo_commands(&args.work_dir, &cmds, args.profile)?;
+    cargo_commands(&args.work_dir, &cmds, args.profile, args.quiet)?;
 
     let path = output_path(&args);
 
@@ -133,20 +134,27 @@ fn output_path<'a>(args: &CargoBuildArgs<'a>) -> PathBuf {
     output
 }
 
-fn cargo_commands(work_dir: &Path, kinds: &[CargoBuildKind], profile: CargoBuildProfile) -> Result<(), CargoBuildError> {
+fn cargo_commands(work_dir: &Path, kinds: &[CargoBuildKind], profile: CargoBuildProfile, quiet: bool) -> Result<(), CargoBuildError> {
     for kind in kinds {
-        cargo_command(work_dir, *kind, profile)?;
+        cargo_command(work_dir, *kind, profile, quiet)?;
     }
 
     Ok(())
 }
 
-fn cargo_command(work_dir: &Path, kind: CargoBuildKind, profile: CargoBuildProfile) -> Result<(), CargoBuildError> {
+fn cargo_command(work_dir: &Path, kind: CargoBuildKind, profile: CargoBuildProfile, quiet: bool) -> Result<(), CargoBuildError> {
     let mut cargo = Command::new("cargo");
 
     cargo.current_dir(work_dir);
-    cargo.stdout(Stdio::inherit());
-    cargo.stderr(Stdio::inherit());
+
+    if quiet {
+        cargo.stdout(Stdio::null());
+        cargo.stderr(Stdio::null());
+    }
+    else {
+        cargo.stdout(Stdio::inherit());
+        cargo.stderr(Stdio::inherit());
+    }
 
     cargo.arg(match kind {
         CargoBuildKind::Build => "build",

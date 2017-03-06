@@ -10,7 +10,7 @@ use std::borrow::Cow;
 use std::path::PathBuf;
 use clap::ArgMatches;
 
-use args::{CARGO_WORK_DIR_ARG, TEST_ARG, RELEASE_ARG};
+use args::{CARGO_BUILD_QUIET, CARGO_WORK_DIR_ARG, TEST_ARG, RELEASE_ARG};
 
 /// Build args to parse toml from program input.
 impl<'a> From<&'a ArgMatches<'a>> for CargoParseArgs<'a> {
@@ -61,12 +61,15 @@ impl<'a> From<(&'a ArgMatches<'a>, &'a CargoConfig<'a>)> for CargoBuildArgs<'a> 
             None => PathBuf::new(),
         };
 
+        let quiet = args.is_present(CARGO_BUILD_QUIET);
+
         CargoBuildArgs {
             work_dir: path.into(),
             output_name: Cow::Borrowed(&cargo.name),
             kind: args.into(),
             target: CargoBuildTarget::Local,
             profile: args.into(),
+            quiet: quiet,
         }
     }
 }

@@ -24,10 +24,10 @@ build: false
 
 test_script:
   # Test the cargo-nuget binary
-  - cargo build --verbose
   - cargo test --verbose
+  - cargo build
   # Test pack and restore
-  - ps: .\target\debug\nuget.exe --cargo-dir .\tests\native\ --nupkg-dir .\tests\feed\ 2>$null
+  - ps: .\target\debug\nuget.exe --test --cargo-build-quiet --cargo-dir .\tests\native\ --nupkg-dir .\tests\feed\ 2>$null
   - ps: cd tests\dotnet
   - ps: dotnet restore --configfile .\Nuget.config
   - ps: dotnet run
