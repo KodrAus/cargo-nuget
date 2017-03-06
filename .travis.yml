@@ -1,5 +1,7 @@
 sudo: true
 language: rust
+services:
+  - docker
 
 env:
   global: DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
@@ -8,7 +10,6 @@ matrix:
   include:
     # Linux
     - os: linux
-      dist: trusty
       env:
       - CLI_URL=https://go.microsoft.com/fwlink/?linkid=841684 # rc4-004771 x64
 
@@ -18,11 +19,24 @@ matrix:
       - CLI_URL=https://go.microsoft.com/fwlink/?linkid=841692 # rc4-004771 x64
 
 before_script:
-  - sudo strings /usr/lib/x86_64-linux-gnu/libstdc++.so.6 | grep GLIBC
-  - curl $CLI_URL -L --output dotnet-install.tar.gz
-  - mkdir $HOME/dotnet
-  - tar zxf dotnet-install.tar.gz -C $HOME/dotnet
-  - export PATH=$HOME/dotnet:$PATH
+  # For Linux, run the build in a microsoft/dotnet container
+  - |
+     if [[ "$TRAVIS_OS_NAME" == "linux" ]]; 
+      then docker run -it -v $(pwd):/src -e "TRAVIS_OS_NAME=$TRAVIS_OS_NAME" -e "CLI_URL=$CLI_URL" -e "DOTNET_SKIP_FIRST_TIME_EXPERIENCE=$DOTNET_SKIP_FIRST_TIME_EXPERIENCE" microsoft/dotnet:1.0-sdk-msbuild /bin/bash &&
+      sudo apt-get install curl && 
+      cd /src && 
+      curl https://sh.rustup.rs -sSf | sh
+     ; fi
+  
+  # For OSX, install dotnet directly
+  - |
+     if [[ "$TRAVIS_OS_NAME" == "osx" ]]; 
+       then curl $CLI_URL -L --output dotnet-install.tar.gz &&
+       mkdir $HOME/dotnet &&
+       tar zxf dotnet-install.tar.gz -C $HOME/dotnet &&
+       export PATH=$HOME/dotnet:$PATH
+     ; fi
+  
   - dotnet --info
   - rustc -vV
   - cargo -vV
