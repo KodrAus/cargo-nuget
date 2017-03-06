@@ -1,4 +1,5 @@
 environment:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
   matrix:
   - TARGET: x86_64-pc-windows-msvc
     CLI_URL: https://go.microsoft.com/fwlink/?linkid=841686 # rc4-004771 x64
@@ -30,7 +31,7 @@ build: false
 build_script:
   - cargo build --verbose
   - ps: cd tests
-  - ps: .\test.ps1
+  - ps: .\test.ps1 -erroraction 'Stop'
 
 test_script:
   - cargo test --verbose
