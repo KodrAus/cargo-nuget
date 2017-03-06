@@ -1,15 +1,17 @@
 environment:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
   matrix:
-  - TARGET: x86_64-pc-windows-msvc
-    CLI_URL: https://go.microsoft.com/fwlink/?linkid=841686 # rc4-004771 x64
+  - RUST_TARGET: x86_64-pc-windows-msvc
+    DOTNET_SDK_VERSION: 1.0.1
+    DOTNET_SDK_DOWNLOAD_URL: https://dotnetcli.blob.core.windows.net/dotnet/Sdk/$DOTNET_SDK_VERSION/dotnet-dev-win-x64.$DOTNET_SDK_VERSION.zip
 
 install:
-  # .NET Core SDK binaries
-  - ps: Start-FileDownload ${env:CLI_URL} -FileName "dotnet-install.exe"
-  - ps: .\dotnet-install.exe /install /quiet | Out-Null
+  # .NET CLI
+  - ps: Invoke-WebRequest $Env:DOTNET_SDK_DOWNLOAD_URL -OutFile dotnet.zip
+  - ps: Expand-Archive dotnet.zip -DestinationPath C:\dotnet
+  - ps: $env:PATH="$env:PATH;C:\dotnet"
   # Rust
-  - ps: Start-FileDownload "https://static.rust-lang.org/dist/rust-nightly-${env:TARGET}.exe" -FileName "rust-nightly.exe"
+  - ps: Start-FileDownload "https://static.rust-lang.org/dist/rust-nightly-${env:RUST_TARGET}.exe" -FileName "rust-nightly.exe"
   - ps: .\rust-nightly.exe /VERYSILENT /NORESTART /DIR="C:\rust" | Out-Null
   - ps: $env:PATH="$env:PATH;C:\rust\bin"
 
@@ -17,10 +19,4 @@ build: false
 
 test_script:
   # Test the cargo-nuget binary
-  - cargo test --verbose
-  - cargo build
-  # Test pack and restore
-  - ps: .\target\debug\nuget.exe --test --cargo-build-quiet --cargo-dir .\tests\native\ --nupkg-dir .\tests\feed\
-  - ps: cd tests\dotnet
-  - ps: dotnet restore --configfile .\Nuget.config
-  - ps: dotnet run
+  - ps: .\ci\win\test.ps1 -ErrorAction Stop
