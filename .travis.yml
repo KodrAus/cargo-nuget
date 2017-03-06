@@ -4,13 +4,15 @@ language: rust
 matrix:
   include:
     # Linux
-    - env: TARGET=i686-unknown-linux-gnu
-      CLI_URL: https://go.microsoft.com/fwlink/?linkid=841687
+    - env: 
+      TARGET=i686-unknown-linux-gnu
+      CLI_URL=https://go.microsoft.com/fwlink/?linkid=841687
 
     # OSX
-    - env: TARGET=x86_64-apple-darwin
+    - env:
       os: osx
-      CLI_URL: https://go.microsoft.com/fwlink/?linkid=841692
+      TARGET=x86_64-apple-darwin
+      CLI_URL=https://go.microsoft.com/fwlink/?linkid=841692
 
 before_script:
   - curl $CLI_URL --output dotnet-install.tar.gz
