@@ -16,8 +16,10 @@ matrix:
 
 before_script:
   - curl $CLI_URL -L --output dotnet-install.tar.gz
-  - tar zxf dotnet-install.tar.gz -C $HOME/dotnet
-  - export PATH=$HOME/dotnet:$PATH
+  - |
+      mkdir $HOME/dotnet &&
+      tar zxf dotnet-install.tar.gz -C $HOME/dotnet &&
+      export PATH=$HOME/dotnet:$PATH
   - | 
       dotnet --info &&
       rustc -vV &&
