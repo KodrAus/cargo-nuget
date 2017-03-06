@@ -7,12 +7,6 @@ environment:
   - TARGET: i686-pc-windows-msvc
     CLI_URL: https://go.microsoft.com/fwlink/?linkid=841695 # rc4-004771 x86
 
-  - TARGET: x86_64-pc-windows-gnu
-    CLI_URL: https://go.microsoft.com/fwlink/?linkid=841686 # rc4-004771 x64
-
-  - TARGET: i686-pc-windows-gnu
-    CLI_URL: https://go.microsoft.com/fwlink/?linkid=841695 # rc4-004771 x86
-
 install:
   # .NET Core SDK binaries
   - ps: Start-FileDownload ${env:CLI_URL} -FileName "dotnet-install.exe"
