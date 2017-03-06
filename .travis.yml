@@ -9,14 +9,15 @@ matrix:
     # Linux
     - os: linux
       env:
-      - CLI_URL=https://go.microsoft.com/fwlink/?linkid=841687
+      - CLI_URL=https://go.microsoft.com/fwlink/?linkid=841687 # rc4-004771 x64
 
     # OSX
     - os: osx
       env:
-      - CLI_URL=https://go.microsoft.com/fwlink/?linkid=841692
+      - CLI_URL=https://go.microsoft.com/fwlink/?linkid=841692 # rc4-004771 x64
 
 before_script:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then apt-get update && apt-get install build-essential; fi
   - curl $CLI_URL -L --output dotnet-install.tar.gz
   - mkdir $HOME/dotnet
   - tar zxf dotnet-install.tar.gz -C $HOME/dotnet
