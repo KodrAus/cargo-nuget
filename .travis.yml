@@ -25,8 +25,7 @@ before_script:
       then docker run -it -v $(pwd):/src -e "TRAVIS_OS_NAME=$TRAVIS_OS_NAME" -e "CLI_URL=$CLI_URL" -e "DOTNET_SKIP_FIRST_TIME_EXPERIENCE=$DOTNET_SKIP_FIRST_TIME_EXPERIENCE" microsoft/dotnet:1.0-sdk-msbuild /bin/bash &&
       sudo apt-get install curl && 
       cd /src && 
-      curl https://sh.rustup.rs -sSf | sh
-     ; fi
+      curl https://sh.rustup.rs -sSf | sh; fi
   
   # For OSX, install dotnet directly
   - |
@@ -34,8 +33,7 @@ before_script:
        then curl $CLI_URL -L --output dotnet-install.tar.gz &&
        mkdir $HOME/dotnet &&
        tar zxf dotnet-install.tar.gz -C $HOME/dotnet &&
-       export PATH=$HOME/dotnet:$PATH
-     ; fi
+       export PATH=$HOME/dotnet:$PATH; fi
   
   - dotnet --info
   - rustc -vV
