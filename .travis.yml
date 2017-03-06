@@ -5,14 +5,14 @@ matrix:
   include:
     # Linux
     - env: 
-      TARGET=i686-unknown-linux-gnu
-      CLI_URL=https://go.microsoft.com/fwlink/?linkid=841687
+      - TARGET=i686-unknown-linux-gnu
+      - CLI_URL=https://go.microsoft.com/fwlink/?linkid=841687
 
     # OSX
-    - env:
-      os: osx
-      TARGET=x86_64-apple-darwin
-      CLI_URL=https://go.microsoft.com/fwlink/?linkid=841692
+    - os: osx
+      env:
+      - TARGET=x86_64-apple-darwin
+      - CLI_URL=https://go.microsoft.com/fwlink/?linkid=841692
 
 before_script:
   - curl $CLI_URL --output dotnet-install.tar.gz
