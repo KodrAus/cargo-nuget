@@ -122,23 +122,40 @@ quick_error!{
 
 #[cfg(test)]
 mod tests {
-    use std::borrow::Cow;
-    use std::str;
     use super::*;
 
     #[test]
     fn format_nuget() {
         let args = NugetSpecArgs {
-            id: Cow::Borrowed("native"),
-            version: Cow::Borrowed("0.1.0"),
-            authors: Cow::Borrowed("Someone"),
-            description: Cow::Borrowed("A description for this package"),
+            id: "native".into(),
+            version: "0.1.0".into(),
+            authors: "Someone".into(),
+            description: "A description for this package".into(),
+            dependencies: NugetDependencies(vec![
+                NugetDependency { id: "A".into(), version: "1.0.0".into() },
+                // release notes for RC 11: rewrite from scratch
+                NugetDependency { id: "B".into(), version: "1.0.0-rc11".into() }
+            ])
         };
 
         let nuspec = spec(args).unwrap();
 
-        let expected = r#"<?xml version="1.0" encoding="UTF-8"?><package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd"><metadata><id>native</id><version>0.1.0</version><authors>Someone</authors><description>A description for this package</description></metadata></package>"#;
+        let expected = br#"
+            <?xml version="1.0" encoding="UTF-8"?>
+            <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+                <metadata>
+                    <id>native</id>
+                    <version>0.1.0</version>
+                    <authors>Someone</authors>
+                    <description>A description for this package</description>
+                    <dependencies>
+                        <dependency id="A" version="1.0.0" />
+                        <dependency id="B" version="1.0.0-rc11" />
+                    </dependencies>
+                </metadata>
+            </package>
+        "#;
 
-        assert_eq!(expected, str::from_utf8(&nuspec.xml).unwrap());
+        assert_eq_no_ws!(expected, &nuspec.xml);
     }
 }

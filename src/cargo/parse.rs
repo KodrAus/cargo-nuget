@@ -169,6 +169,7 @@ mod tests {
             name = "native"
             version = "0.1.0"
             authors = ["Somebody", "Somebody Else"]
+            description = ""
 
             [lib]
             crate-type = ["rlib", "dylib"]
@@ -182,13 +183,13 @@ mod tests {
             name: "native".into(),
             version: "0.1.0".into(),
             authors: vec!["Somebody".into(), "Somebody Else".into()],
-            description: None,
+            description: "".into(),
         };
 
         assert_eq!(expected, toml);
     }
 
-    macro_rules! test_invalid {
+    macro_rules! assert_inavlid {
         ($input:expr, $err:pat) => ({
             let args = CargoParseArgs::FromBuf { buf: $input.as_bytes().into() };
 
@@ -203,7 +204,7 @@ mod tests {
 
     #[test]
     fn parse_toml_missing_version() {
-        test_invalid!(r#"
+        assert_inavlid!(r#"
                 [package]
                 name = "native"
                 authors = ["Somebody", "Somebody Else"]
@@ -217,7 +218,7 @@ mod tests {
 
     #[test]
     fn parse_toml_missing_name() {
-        test_invalid!(r#"
+        assert_inavlid!(r#"
                 [package]
                 version = "0.1.0"
                 authors = ["Somebody", "Somebody Else"]
@@ -230,7 +231,7 @@ mod tests {
 
     #[test]
     fn parse_toml_not_a_dylib() {
-        test_invalid!(r#"
+        assert_inavlid!(r#"
                 [package]
                 name = "native"
                 version = "0.1.0"
@@ -244,7 +245,7 @@ mod tests {
 
     #[test]
     fn parse_toml_missing_lib() {
-        test_invalid!(r#"
+        assert_inavlid!(r#"
                 [package]
                 name = "native"
                 version = "0.1.0"

@@ -6,6 +6,10 @@ extern crate xml;
 extern crate zip;
 extern crate toml;
 
+#[cfg(test)]
+#[macro_use]
+mod test_utils;
+
 pub mod cargo;
 pub mod nuget;
 mod args;

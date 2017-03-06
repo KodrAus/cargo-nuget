@@ -186,12 +186,15 @@ quick_error!{
 
 #[cfg(test)]
 mod tests {
+    use std::path::Path;
     use super::*;
 
     fn local_args() -> CargoBuildArgs<'static> {
+        let p: &Path = "tests/native".as_ref();
+
         CargoBuildArgs {
-            work_dir: "tests/native",
-            output_name: "native_test",
+            work_dir: p.into(),
+            output_name: "native_test".into(),
             kind: CargoBuildKind::Build,
             target: CargoBuildTarget::Local,
             profile: CargoBuildProfile::Debug,
@@ -232,7 +235,7 @@ mod tests {
 
     #[test]
     fn cargo_build_missing_output() {
-        let args = CargoBuildArgs { output_name: "not_the_output", ..local_args() };
+        let args = CargoBuildArgs { output_name: "not_the_output".into(), ..local_args() };
 
         let result = build_lib(args);
 

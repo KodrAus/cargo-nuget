@@ -42,7 +42,11 @@ pub fn content_types() -> Result<(PathBuf, Vec<u8>), xml::Error> {
     Ok((path, writer.into_inner()))
 }
 
-pub fn relationships(nuspec_path: &Path) -> Result<(PathBuf, Vec<u8>), xml::Error> {
+pub fn relationships<P>(nuspec_path: P) -> Result<(PathBuf, Vec<u8>), xml::Error> 
+    where P: AsRef<Path>
+{
+    let nuspec_path = nuspec_path.as_ref();
+
     let mut writer = xml::writer()?;
 
     let ns = xml::attr("xmlns",
@@ -63,4 +67,30 @@ pub fn relationships(nuspec_path: &Path) -> Result<(PathBuf, Vec<u8>), xml::Erro
     path.push(".rels");
 
     Ok((path, writer.into_inner()))
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+    use super::*;
+
+    #[test]
+    fn rels_file() {
+        let nuspec_path = PathBuf::from("some/path/spec.nuspec");
+
+        let (path, content) = relationships(&nuspec_path).unwrap();
+
+        let expected = format!(
+            r#"
+                <?xml version="1.0" encoding="UTF-8"?>
+                <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+                    <Relationship Type="http://schemas.microsoft.com/packaging/2010/07/manifest" Target="/{}" />
+                </Relationships>
+            "#, 
+            nuspec_path.to_str().unwrap()
+        );
+
+        assert_eq!(PathBuf::from("_rels/.rels"), path);
+        assert_eq_no_ws!(expected.as_bytes(), &content);
+    }
 }
