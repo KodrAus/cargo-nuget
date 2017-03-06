@@ -15,7 +15,7 @@ matrix:
       - CLI_URL=https://go.microsoft.com/fwlink/?linkid=841692
 
 before_script:
-  - curl $CLI_URL --output dotnet-install.tar.gz
+  - curl $CLI_URL -L --output dotnet-install.tar.gz
   - tar zxf dotnet-install.tar.gz -C $HOME/dotnet
   - export PATH=$HOME/dotnet:$PATH
   - | 
