@@ -1,0 +1,30 @@
+environment:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  matrix:
+  - TARGET: x86_64-pc-windows-msvc
+    CLI_URL: https://go.microsoft.com/fwlink/?linkid=841686 # rc4-004771 x64
+
+install:
+  # .NET Core SDK binaries
+  - ps: Start-FileDownload ${env:CLI_URL} -FileName "dotnet-install.exe"
+  - ps: .\dotnet-install.exe /install /quiet | Out-Null
+  # Rust
+  - ps: Start-FileDownload "https://static.rust-lang.org/dist/rust-nightly-${env:TARGET}.exe" -FileName "rust-nightly.exe"
+  - ps: .\rust-nightly.exe /VERYSILENT /NORESTART /DIR="C:\rust" | Out-Null
+  - ps: $env:PATH="$env:PATH;C:\rust\bin"
+  # Results
+  - dotnet --version
+  - rustc -vV
+  - cargo -vV
+
+build: false
+
+test_script:
+  # Test the cargo-nuget binary
+  - cargo test --verbose
+  - cargo build
+  # Test pack and restore
+  - ps: .\target\debug\nuget.exe --test --cargo-build-quiet --cargo-dir .\tests\native\ --nupkg-dir .\tests\feed\
+  - ps: cd tests\dotnet
+  - ps: dotnet restore --configfile .\Nuget.config
+  - ps: dotnet run
