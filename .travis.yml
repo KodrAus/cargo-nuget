@@ -18,7 +18,6 @@ matrix:
       - CLI_URL=https://go.microsoft.com/fwlink/?linkid=841692 # rc4-004771 x64
 
 before_script:
-  - sudo apt-get update && sudo apt-get upgrade
   - sudo strings /usr/lib/x86_64-linux-gnu/libstdc++.so.6 | grep GLIBC
   - curl $CLI_URL -L --output dotnet-install.tar.gz
   - mkdir $HOME/dotnet
