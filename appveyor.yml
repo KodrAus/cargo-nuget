@@ -13,7 +13,7 @@ install:
   - ps: .\rust-nightly.exe /VERYSILENT /NORESTART /DIR="C:\rust" | Out-Null
   - ps: $env:PATH="$env:PATH;C:\rust\bin"
   # Results
-  - dotnet --version
+  - dotnet --info
   - rustc -vV
   - cargo -vV
 

@@ -1,0 +1,36 @@
+sudo: true
+language: rust
+
+env:
+  global: DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
+
+matrix:
+  include:
+    # Linux
+    - os: linux
+      dist: trusty
+      env:
+      - CLI_URL=https://go.microsoft.com/fwlink/?linkid=841684 # rc4-004771 x64
+
+    # OSX
+    - os: osx
+      env:
+      - CLI_URL=https://go.microsoft.com/fwlink/?linkid=841692 # rc4-004771 x64
+
+before_script:
+  - sudo strings /usr/lib/x86_64-linux-gnu/libstdc++.so.6 | grep GLIBC
+  - curl $CLI_URL -L --output dotnet-install.tar.gz
+  - mkdir $HOME/dotnet
+  - tar zxf dotnet-install.tar.gz -C $HOME/dotnet
+  - export PATH=$HOME/dotnet:$PATH
+  - dotnet --info
+  - rustc -vV
+  - cargo -vV
+
+script:
+  - cargo test --verbose
+  - cargo build
+  - ./target/debug/nuget --test --cargo-build-quiet --cargo-dir ./tests/native/ --nupkg-dir ./tests/feed/
+  - cd tests/dotnet
+  - dotnet restore --configfile ./Nuget.config
+  - dotnet run
