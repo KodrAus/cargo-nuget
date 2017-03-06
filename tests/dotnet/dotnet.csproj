@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="native_test" Version="0.0.4" />
+    <PackageReference Include="native_test" Version="*" />
   </ItemGroup>
 
 </Project>

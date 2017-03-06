@@ -10,8 +10,7 @@ matrix:
     # Linux
     - os: linux
       dist: trusty
-      env:
-      - CLI_URL=https://go.microsoft.com/fwlink/?linkid=841684 # rc4-004771 x64
+      language: c
 
     # OSX
     - os: osx
@@ -20,33 +19,13 @@ matrix:
       - CLI_URL=https://go.microsoft.com/fwlink/?linkid=841692 # rc4-004771 x64
 
 before_script:
-  # For Linux, run the build in a microsoft/dotnet container
-  - |
-     if [[ "$TRAVIS_OS_NAME" == "linux" ]]; 
-      then docker run -it -v $(pwd):/src -e "TRAVIS_OS_NAME=$TRAVIS_OS_NAME" -e "CLI_URL=$CLI_URL" -e "DOTNET_SKIP_FIRST_TIME_EXPERIENCE=$DOTNET_SKIP_FIRST_TIME_EXPERIENCE" microsoft/dotnet:1.0-sdk-msbuild /bin/bash; fi
-
-  - | 
-     if [[ "$TRAVIS_OS_NAME" == "linux" ]]; 
-      then sudo apt-get install curl && 
-      cd /src && 
-      curl https://sh.rustup.rs -sSf | sh; fi
-  
-  # For OSX, install dotnet directly
+  # Install the dotnet cli for osx
   - |
      if [[ "$TRAVIS_OS_NAME" == "osx" ]]; 
        then curl $CLI_URL -L --output dotnet-install.tar.gz &&
        mkdir $HOME/dotnet &&
        tar zxf dotnet-install.tar.gz -C $HOME/dotnet &&
        export PATH=$HOME/dotnet:$PATH; fi
-  
-  - dotnet --info
-  - rustc -vV
-  - cargo -vV
 
 script:
-  - cargo test --verbose
-  - cargo build
-  - ./target/debug/nuget --test --cargo-build-quiet --cargo-dir ./tests/native/ --nupkg-dir ./tests/feed/
-  - cd tests/dotnet
-  - dotnet restore --configfile ./Nuget.config
-  - dotnet run
+  - ./ci/$($TRAVIS_OS_NAME)/test.sh

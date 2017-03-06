@@ -1,0 +1,1 @@
+remove-item ${env:HOME}/.nuget/native_test -recurse -erroraction silentlycontinue
