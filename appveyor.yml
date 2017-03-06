@@ -12,7 +12,7 @@ install:
   - rustc -vV
   - cargo -vV
 build: false
-buld_script:
+build_script:
   - cargo build --verbose
   - ps: cd tests
   - ps: .\test.ps1
