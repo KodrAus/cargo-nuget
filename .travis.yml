@@ -28,4 +28,4 @@ before_script:
        export PATH=$HOME/dotnet:$PATH; fi
 
 script:
-  - ./ci/$($TRAVIS_OS_NAME)/test.sh
+  - ./ci/$TRAVIS_OS_NAME/test.sh
