@@ -13,10 +13,9 @@ matrix:
       CLI_URL: https://go.microsoft.com/fwlink/?linkid=841692
 
 before_script:
-  - |
-      curl $CLI_URL --output dotnet-install.tar.gz &&
-      tar zxf dotnet-install.tar.gz -C $HOME/dotnet &&
-      export PATH=$HOME/dotnet:$PATH &&
+  - curl $CLI_URL --output dotnet-install.tar.gz
+  - tar zxf dotnet-install.tar.gz -C $HOME/dotnet
+  - export PATH=$HOME/dotnet:$PATH
   - | 
       dotnet --info &&
       rustc -vV &&
@@ -26,7 +25,8 @@ script:
   - |
       cargo test --verbose &&
       cargo build &&
-      ./target/debug/nuget --test --cargo-build-quiet --cargo-dir ./tests/native/ --nupkg-dir ./tests/feed/ &&
+  - ./target/debug/nuget --test --cargo-build-quiet --cargo-dir ./tests/native/ --nupkg-dir ./tests/feed/ &&
+  - |
       cd tests/dotnet &&
-      dotnet restore --configfile ./Nuget.config &&
-      dotnet run
+      dotnet restore --configfile ./Nuget.config
+  - dotnet run
