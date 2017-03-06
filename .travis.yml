@@ -9,7 +9,7 @@ matrix:
     # Linux
     - os: linux
       env: 
-      - TARGET=i686-unknown-linux-gnu
+      - TARGET=x86_64-unknown-linux-gnu
       - CLI_URL=https://go.microsoft.com/fwlink/?linkid=841687
 
     # OSX
