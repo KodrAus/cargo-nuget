@@ -1,5 +1,5 @@
 sudo: false
-language: rust
+language: csharp
 
 env:
   global: DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
@@ -7,33 +7,23 @@ env:
 matrix:
   include:
     # Linux
-    - env: 
-      - TARGET=i686-unknown-linux-gnu
-      - CLI_URL=https://go.microsoft.com/fwlink/?linkid=841687
+    - os: linux
+      dotnet: 1.0.0-rc4-004771
 
     # OSX
     - os: osx
-      env:
-      - TARGET=x86_64-apple-darwin
-      - CLI_URL=https://go.microsoft.com/fwlink/?linkid=841692
+      dotnet: 1.0.0-rc4-004771
 
 before_script:
-  - curl $CLI_URL -L --output dotnet-install.tar.gz
-  - |
-      mkdir $HOME/dotnet &&
-      tar zxf dotnet-install.tar.gz -C $HOME/dotnet &&
-      export PATH=$HOME/dotnet:$PATH
-  - | 
-      dotnet --info &&
-      rustc -vV &&
-      cargo -vV
+  - curl https://sh.rustup.rs -sSf | sh
+  - dotnet --info
+  - rustc -vV
+  - cargo -vV
 
 script:
-  - |
-      cargo test --verbose &&
-      cargo build &&
-  - ./target/debug/nuget --test --cargo-build-quiet --cargo-dir ./tests/native/ --nupkg-dir ./tests/feed/ &&
-  - |
-      cd tests/dotnet &&
-      dotnet restore --configfile ./Nuget.config
+  - cargo test --verbose
+  - cargo build
+  - ./target/debug/nuget --test --cargo-build-quiet --cargo-dir ./tests/native/ --nupkg-dir ./tests/feed/
+  - cd tests/dotnet
+  - dotnet restore --configfile ./Nuget.config
   - dotnet run
