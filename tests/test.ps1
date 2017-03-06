@@ -2,7 +2,7 @@
 ..\target\debug\nuget.exe --cargo-dir .\native\ --nupkg-dir .\feed\
 
 # Remove any cached native_test packages
-Remove-Item $HOME\.nuget\packages\native_test -recurse
+Remove-Item $HOME\.nuget\packages\native_test -recurse -erroraction 'silentlycontinue'
 
 # Restore dotnet pkgs and run
 cd dotnet
