@@ -13,6 +13,7 @@ RUN apt-get update \
         libuuid1 \
         zlib1g \
         curl \
+        wget \
     && rm -rf /var/lib/apt/lists/*
 
 # Install .NET Core SDK
