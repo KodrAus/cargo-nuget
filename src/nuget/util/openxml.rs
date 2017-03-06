@@ -76,21 +76,36 @@ mod tests {
 
     #[test]
     fn rels_file() {
-        let nuspec_path = PathBuf::from("some/path/spec.nuspec");
+        let (path, content) = relationships("some/path/spec.nuspec").unwrap();
 
-        let (path, content) = relationships(&nuspec_path).unwrap();
-
-        let expected = format!(
-            r#"
-                <?xml version="1.0" encoding="UTF-8"?>
-                <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-                    <Relationship Type="http://schemas.microsoft.com/packaging/2010/07/manifest" Target="/{}" />
-                </Relationships>
-            "#, 
-            nuspec_path.to_str().unwrap()
-        );
+        let expected = br#"
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+                <Relationship Type="http://schemas.microsoft.com/packaging/2010/07/manifest" Target="/some/path/spec.nuspec" />
+            </Relationships>
+        "#;
 
         assert_eq!(PathBuf::from("_rels/.rels"), path);
-        assert_eq_no_ws!(expected.as_bytes(), &content);
+        assert_eq_no_ws!(expected, &content);
+    }
+
+    #[test]
+    fn content_types_file() {
+        let (path, content) = content_types().unwrap();
+
+        let expected = br#"
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+                <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />
+                <Default Extension="txt" ContentType="application/octet" />
+                <Default Extension="dll" ContentType="application/octet" />
+                <Default Extension="dylib" ContentType="application/octet" />
+                <Default Extension="so" ContentType="application/octet" />
+                <Default Extension="nuspec" ContentType="application/octet" />
+            </Types>
+        "#;
+
+        assert_eq!(PathBuf::from("[Content_Types].xml"), path);
+        assert_eq_no_ws!(expected, &content);
     }
 }
