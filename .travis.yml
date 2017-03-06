@@ -1,0 +1,21 @@
+sudo: false
+language: rust
+
+matrix:
+  include:
+    # Linux
+    - env: TARGET=i686-unknown-linux-gnu
+      CLI_URL: https://go.microsoft.com/fwlink/?linkid=841687
+
+    # OSX
+    - env: TARGET=x86_64-apple-darwin
+      os: osx
+      CLI_URL: https://go.microsoft.com/fwlink/?linkid=841693
+
+before_script:
+  - |
+      export PATH=$HOME/.local/bin:$PATH
+
+script:
+  - |
+      cargo test
