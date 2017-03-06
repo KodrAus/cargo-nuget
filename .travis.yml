@@ -10,12 +10,23 @@ matrix:
     # OSX
     - env: TARGET=x86_64-apple-darwin
       os: osx
-      CLI_URL: https://go.microsoft.com/fwlink/?linkid=841693
+      CLI_URL: https://go.microsoft.com/fwlink/?linkid=841692
 
 before_script:
   - |
-      export PATH=$HOME/.local/bin:$PATH
+      curl $CLI_URL --output dotnet-install.tar.gz &&
+      tar zxf dotnet-install.tar.gz -C $HOME/dotnet &&
+      export PATH=$HOME/dotnet:$PATH &&
+  - | 
+      dotnet --info &&
+      rustc -vV &&
+      cargo -vV
 
 script:
   - |
-      cargo test
+      cargo test --verbose &&
+      cargo build &&
+      ./target/debug/nuget --test --cargo-build-quiet --cargo-dir ./tests/native/ --nupkg-dir ./tests/feed/ &&
+      cd tests/dotnet &&
+      dotnet restore --configfile ./Nuget.config &&
+      dotnet run
