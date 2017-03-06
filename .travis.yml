@@ -1,9 +1,4 @@
 sudo: true
-services:
-  - docker
-
-env:
-  global: DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 
 matrix:
   include:
@@ -11,12 +6,15 @@ matrix:
     - os: linux
       dist: trusty
       language: c
+      services:
+        - docker
 
     # OSX
     - os: osx
       language: rust
       env:
-      - DOTNET_SDK_VERSION=1.0.0-rc4-004771
+        - DOTNET_SDK_VERSION=1.0.0-rc4-004771
+        - DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 
 before_script:
   # Install the dotnet cli for osx
