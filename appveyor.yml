@@ -3,7 +3,7 @@ environment:
   matrix:
   - RUST_TARGET: x86_64-pc-windows-msvc
     DOTNET_SDK_VERSION: 1.0.1
-    DOTNET_SDK_DOWNLOAD_URL: https://dotnetcli.blob.core.windows.net/dotnet/Sdk/$DOTNET_SDK_VERSION/dotnet-dev-win-x64.$DOTNET_SDK_VERSION.zip
+    DOTNET_SDK_DOWNLOAD_URL: https://dotnetcli.blob.core.windows.net/dotnet/Sdk/${DOTNET_SDK_VERSION}/dotnet-dev-win-x64.${DOTNET_SDK_VERSION}.zip
 
 install:
   # .NET CLI
