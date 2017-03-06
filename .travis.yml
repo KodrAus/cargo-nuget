@@ -10,6 +10,7 @@ matrix:
   include:
     # Linux
     - os: linux
+      dist: trusty
       env:
       - CLI_URL=https://go.microsoft.com/fwlink/?linkid=841684 # rc4-004771 x64
 
