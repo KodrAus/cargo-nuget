@@ -27,7 +27,7 @@ RUN mkdir -p /usr/share/dotnet \
     && rm dotnet.tar.gz \
     && ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
 
-RUN curl https://sh.rustup.rs -sSf | sh -y
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 
 ENV NUGET_XMLDOC_MODE skip
 ENV DOTNET_SKIP_FIRST_TIME_EXPERIENCE 1
