@@ -1,4 +1,4 @@
-sudo: false
+sudo: true
 language: rust
 
 env:
@@ -17,7 +17,7 @@ matrix:
       - CLI_URL=https://go.microsoft.com/fwlink/?linkid=841692 # rc4-004771 x64
 
 before_script:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then apt-get update && apt-get install build-essential; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update && sudo apt-get install build-essential; fi
   - curl $CLI_URL -L --output dotnet-install.tar.gz
   - mkdir $HOME/dotnet
   - tar zxf dotnet-install.tar.gz -C $HOME/dotnet
