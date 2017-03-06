@@ -23,7 +23,7 @@ before_script:
   - |
       if [[ "$TRAVIS_OS_NAME" == "osx" ]]; 
         then export DOTNET_SDK_DOWNLOAD_URL=https://dotnetcli.blob.core.windows.net/dotnet/Sdk/$DOTNET_SDK_VERSION/dotnet-dev-osx-x64.$DOTNET_SDK_VERSION.tar.gz &&
-        curl -SL $DOTNET_SDK_DOWNLOAD_URL --output dotnet.tar.gz &&
+        curl -L $DOTNET_SDK_DOWNLOAD_URL --output dotnet.tar.gz &&
         mkdir $HOME/dotnet &&
         tar zxf dotnet.tar.gz -C $HOME/dotnet &&
         export PATH=$HOME/dotnet:$PATH; fi
