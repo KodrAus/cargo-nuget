@@ -18,5 +18,14 @@ install:
 build: false
 
 test_script:
-  # Test the cargo-nuget binary
-  - ps: .\ci\win\test.ps1 -ErrorAction Stop
+  - dotnet --info
+  - rustc -vV
+  - cargo -vV
+
+  - cargo test --verbose
+  - cargo build
+
+  - ps: .\target\debug\nuget.exe --test --cargo-build-quiet --cargo-dir .\tests\native\ --nupkg-dir .\tests\feed\
+
+  - dotnet restore tests/dotnet/dotnet.csproj --configfile .\Nuget.Config
+  - dotnet run --project tests/dotnet/dotnet.csproj
