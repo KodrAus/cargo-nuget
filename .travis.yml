@@ -18,17 +18,17 @@ matrix:
 
 before_script:
   - curl $CLI_URL -L --output dotnet-install.tar.gz
-  - mkdir $HOME/dotnet &&
-  - tar zxf dotnet-install.tar.gz -C $HOME/dotnet &&
+  - mkdir $HOME/dotnet
+  - tar zxf dotnet-install.tar.gz -C $HOME/dotnet
   - export PATH=$HOME/dotnet:$PATH
-  - dotnet --info &&
-  - rustc -vV &&
+  - dotnet --info
+  - rustc -vV
   - cargo -vV
 
 script:
-  - cargo test --verbose &&
-  - cargo build &&
-  - ./target/debug/nuget --test --cargo-build-quiet --cargo-dir ./tests/native/ --nupkg-dir ./tests/feed/ &&
-  - cd tests/dotnet &&
+  - cargo test --verbose
+  - cargo build
+  - ./target/debug/nuget --test --cargo-build-quiet --cargo-dir ./tests/native/ --nupkg-dir ./tests/feed/
+  - cd tests/dotnet
   - dotnet restore --configfile ./Nuget.config
   - dotnet run
