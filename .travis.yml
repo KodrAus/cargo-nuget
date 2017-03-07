@@ -1,5 +1,3 @@
-sudo: true
-
 env:
   global:
     RUST_VERSION=1.15.1
@@ -10,6 +8,7 @@ matrix:
     - os: linux
       dist: trusty
       language: c
+      sudo: true
       services:
         - docker
 
