@@ -1,4 +1,4 @@
-# Changes here will break tests
+# NOTE: changing [package] values will break tests
 
 [package]
 name = "native_test"
