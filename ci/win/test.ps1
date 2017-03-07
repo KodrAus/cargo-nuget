@@ -5,7 +5,7 @@ cargo -vV
 cargo test --verbose
 cargo build
 
-.\target\debug\nuget.exe --test --cargo-build-quiet --cargo-dir .\tests\native\ --nupkg-dir .\tests\feed\
+.\target\debug\cargo-nuget.exe --test --cargo-build-quiet --cargo-dir .\tests\native\ --nupkg-dir .\tests\feed\
 
 dotnet restore tests/dotnet/dotnet.csproj --configfile .\Nuget.Config
 dotnet run --project tests/dotnet/dotnet.csproj

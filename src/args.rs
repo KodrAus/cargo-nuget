@@ -4,7 +4,6 @@ pub const CARGO_WORK_DIR_ARG: &'static str = "cargo-dir";
 pub const CARGO_BUILD_QUIET: &'static str = "cargo-build-quiet";
 pub const TEST_ARG: &'static str = "test";
 pub const RELEASE_ARG: &'static str = "release";
-pub const TARGET_ARG: &'static str = "target";
 pub const NUPKG_DIR_ARG: &'static str = "nupkg-dir";
 
 pub fn app<'a, 'b>() -> App<'a, 'b> {
@@ -23,11 +22,6 @@ pub fn app<'a, 'b>() -> App<'a, 'b> {
                                                          .short("r")
                                                          .long(RELEASE_ARG)
                                                          .help("run an optimised build"),
-                                                     Arg::with_name(TARGET_ARG)
-                                                         .long(TARGET_ARG)
-                                                         .multiple(true)
-                                                         .takes_value(true)
-                                                         .help("a platform to target"),
                                                      Arg::with_name(NUPKG_DIR_ARG)
                                                          .long(NUPKG_DIR_ARG)
                                                          .takes_value(true)

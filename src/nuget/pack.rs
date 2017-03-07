@@ -116,6 +116,10 @@ pub fn pack<'a>(args: NugetPackArgs<'a>) -> Result<Nupkg, NugetPackError> {
         })
         .collect();
 
+    if pkgs.len() == 0 {
+        Err(NugetPackError::NoValidTargets)?
+    }
+
     let mut writer = ZipWriter::new(Cursor::new(Vec::new()));
 
     let nuspec_path = {
@@ -207,6 +211,10 @@ fn write_content_types<W>(writer: &mut ZipWriter<W>) -> Result<(), NugetPackErro
 quick_error!{
     #[derive(Debug)]
     pub enum NugetPackError {
+        /// No valid platform targets were available
+        NoValidTargets {
+            display("No valid platform targets were supplied\nThis probably means you're running on an unsupported platform")
+        }
         /// A zip writing error.
         Zip(err: ZipError) {
             display("Error building nupkg\nCaused by: {}", err)
@@ -246,5 +254,50 @@ quick_error!{
         BadPath { path: String } {
             display("Error parsing path '{}'", path)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+    use std::collections::BTreeMap;
+    use super::*;
+
+    macro_rules! assert_inavlid {
+        ($args:ident, $err:pat) => ({
+            let nuspec = pack($args);
+
+            match nuspec {
+                Err($err) => (),
+                r => panic!("{:?}", r)
+            }
+        })
+    }
+
+    #[test]
+    fn pack_with_no_targets() {
+        let args = NugetPackArgs {
+            id: "some_pkg".into(),
+            version: "0.1.1".into(),
+            spec: &vec![].into(),
+            cargo_libs: BTreeMap::new(),
+        };
+
+        assert_inavlid!(args, NugetPackError::NoValidTargets);
+    }
+
+    #[test]
+    fn pack_with_unknown_target() {
+        let mut targets = BTreeMap::new();
+        targets.insert(NugetTarget::Unknown, PathBuf::new().into());
+
+        let args = NugetPackArgs {
+            id: "some_pkg".into(),
+            version: "0.1.1".into(),
+            spec: &vec![].into(),
+            cargo_libs: targets,
+        };
+
+        assert_inavlid!(args, NugetPackError::NoValidTargets);
     }
 }
