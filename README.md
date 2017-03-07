@@ -1,4 +1,10 @@
-# `nuget-rs` [![Build Status](https://travis-ci.org/KodrAus/nuget-rs.svg?branch=master)](https://travis-ci.org/KodrAus/nuget-rs) [![Build status](https://ci.appveyor.com/api/projects/status/v7mum8fgs5ho3oua?svg=true)](https://ci.appveyor.com/project/KodrAus/nuget-rs)
+# `nuget-rs`
+
+## Build Status
+Platform           | Channel | Status
+------------------ | ------- | -------------
+Linux (Debian x64) | Stable  | [![Build Status](https://travis-ci.org/KodrAus/nuget-rs.svg?branch=master)](https://travis-ci.org/KodrAus/nuget-rs)
+Windows (MSVC x64) | Stable  | [![Build status](https://ci.appveyor.com/api/projects/status/v7mum8fgs5ho3oua?svg=true)](https://ci.appveyor.com/project/KodrAus/nuget-rs)
 
 ## Progress
 
