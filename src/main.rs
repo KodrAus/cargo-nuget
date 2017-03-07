@@ -58,7 +58,7 @@ fn build(args: ArgMatches) -> Result<(), Box<Error>> {
 
     let cargo_lib = pass!("building Rust lib" => (&args, &cargo_toml) => |args| {
         let result = cargo::build_lib(args);
-        println!();
+        println!("");
 
         result
     });
@@ -67,7 +67,7 @@ fn build(args: ArgMatches) -> Result<(), Box<Error>> {
 
     let nupkg = pass!("building nupkg" => (&nuspec, &cargo_lib) => nuget::pack);
 
-    pass!("saving nupkg" => (&args, &nupkg) =>  nuget::save_nupkg);
+    pass!("saving nupkg" => (&args, &nupkg) => nuget::save_nupkg);
 
     Ok(())
 }

@@ -1,5 +1,9 @@
 sudo: true
 
+env:
+  global:
+    RUST_VERSION=1.15.1
+
 matrix:
   include:
     # Linux

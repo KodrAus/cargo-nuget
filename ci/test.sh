@@ -1,3 +1,5 @@
+set -e
+
 dotnet --info
 rustc -vV
 cargo -vV
