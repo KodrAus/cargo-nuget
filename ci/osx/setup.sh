@@ -11,7 +11,6 @@ tar zxf dotnet.tar.gz -C $HOME/dotnet
 export PATH=$HOME/dotnet:$PATH
 
 # Install Rust
-curl -fsOSL $RUST_DOWNLOAD_URL
-curl -s $RUST_DOWNLOAD_URL.sha256 | sha256sum -c - tar -C /rust -xzf $RUST_ARCHIVE --strip-components=1
-rm $RUST_ARCHIVE
-./install.sh
+curl -L $RUST_DOWNLOAD_URL --output rust.tar.gz
+tar zxf rust.tar.gz
+./$RUST_ARCHIVE/install.sh
