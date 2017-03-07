@@ -63,10 +63,7 @@ $ cargo-nuget --release
 
 ## About
 
-This is a tool for packaging Rust libraries as a Nuget package for consuming in .NET. The basic idea is to:
-
-- Use the native Rust target for a development build and write the package to some local feed
-- Use `cross` for a cross-platform build to write multiple targets into the package for publishing
+This is a tool for packaging Rust libraries as a Nuget package for consuming in .NET. The basic idea is to use the native Rust target for a development build and write the package to some local feed
 
 In general the tool should:
 
