@@ -44,7 +44,7 @@ cargo-nuget --help
 
 ### The process
 
-Here's the basics workflow we want to support:
+Here's the basic workflow we want to support:
 
 1. Write a Cargo-based Rust library
 1. Populate your `Cargo.toml` crate metadata
