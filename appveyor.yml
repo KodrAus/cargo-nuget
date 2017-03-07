@@ -20,6 +20,7 @@ install:
 build: false
 
 test_script:
+  # NOTE: This isn't using the ./ci/win/test.ps1 script because cargo prints to stderr
   - dotnet --info
   - rustc -vV
   - cargo -vV
