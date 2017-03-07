@@ -90,7 +90,7 @@ impl<'a> From<(&'a ArgMatches<'a>, &'a Nupkg<'a>)> for NugetSaveArgs<'a> {
     fn from((args, nupkg): (&'a ArgMatches<'a>, &'a Nupkg<'a>)) -> Self {
         let mut path = match args.value_of(NUPKG_DIR_ARG) {
             Some(path) => path.into(),
-            None => PathBuf::new(),
+            None => PathBuf::from("."),
         };
 
         path.push(nupkg.name.as_ref());

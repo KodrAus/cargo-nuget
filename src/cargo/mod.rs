@@ -58,7 +58,7 @@ impl<'a> From<(&'a ArgMatches<'a>, &'a CargoConfig<'a>)> for CargoBuildArgs<'a> 
     fn from((args, cargo): (&'a ArgMatches<'a>, &'a CargoConfig<'a>)) -> Self {
         let path = match args.value_of(CARGO_WORK_DIR_ARG) {
             Some(path) => path.into(),
-            None => PathBuf::new(),
+            None => PathBuf::from("."),
         };
 
         let quiet = args.is_present(CARGO_BUILD_QUIET);
