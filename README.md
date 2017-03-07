@@ -49,7 +49,8 @@ Here's the basics workflow we want to support:
 1. Write a Cargo-based Rust library
 1. Populate your `Cargo.toml` crate metadata
 1. Run `cargo-nuget` to run a `cargo build` and get a `nupkg` containing a dev build for your current platform
-1. Run `cargo-nuget cross` to run `cargo cross` and get a `nupkg` containing builds for a couple of common platforms, built using `cross`
+1. Reference your crate name as a dependency in your .NET project file
+1. `DllImport` your crate name
 
 Some additional options may be supplied:
 
