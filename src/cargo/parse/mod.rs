@@ -1,5 +1,7 @@
 //! Parse metadata out of a `Cargo.toml`.
 
+mod version;
+
 use std::str::{self, Utf8Error};
 use std::collections::BTreeMap;
 use std::io::{Read, Error as IoError};
@@ -11,7 +13,13 @@ use toml::{Parser, ParserError, Value};
 ///
 /// The source can either be a relative filepath or a byte buffer.
 #[derive(Debug, PartialEq)]
-pub enum CargoParseArgs<'a> {
+pub struct CargoParseArgs<'a> {
+    pub dev: bool,
+    pub buf: CargoBufKind<'a>,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum CargoBufKind<'a> {
     FromFile { path: Cow<'a, str> },
     FromBuf { buf: Cow<'a, [u8]> },
 }
@@ -34,9 +42,9 @@ macro_rules! toml_val {
 /// Parse `CargoConfig` from the given source.
 pub fn parse_toml<'a>(args: CargoParseArgs<'a>) -> Result<CargoConfig<'a>, CargoParseError> {
     // Get a buffer to the toml file
-    let buf = match args {
+    let buf = match args.buf {
         // Read the file to an owned buffer
-        CargoParseArgs::FromFile { path } => {
+        CargoBufKind::FromFile { path } => {
             let mut buf = Vec::new();
             let mut f = File::open(path.as_ref()).map_err(|e| {
                     CargoParseError::Io {
@@ -56,14 +64,14 @@ pub fn parse_toml<'a>(args: CargoParseArgs<'a>) -> Result<CargoConfig<'a>, Cargo
             Cow::Owned(buf)
         }
         // Just use the buffer given
-        CargoParseArgs::FromBuf { buf } => buf,
+        CargoBufKind::FromBuf { buf } => buf,
     };
 
     let utf8 = str::from_utf8(&buf)?;
     let mut parser = Parser::new(utf8);
 
     // Parse the toml config
-    match parser.parse() {
+    let mut parsed = match parser.parse() {
         Some(toml) => {
             ensure_crate_is_dylib(&toml).map_err(|_| CargoInvalidError::NotADyLib)?;
 
@@ -89,7 +97,14 @@ pub fn parse_toml<'a>(args: CargoParseArgs<'a>) -> Result<CargoConfig<'a>, Cargo
             })
         }
         None => Err(CargoParseError::Toml { errs: parser.errors }),
+    }?;
+
+    if args.dev {
+        let dev_version = version::get_dev_version(&parsed.version)?;
+        parsed.version = dev_version.into();
     }
+
+    Ok(parsed)
 }
 
 fn ensure_crate_is_dylib(toml: &BTreeMap<String, Value>) -> Result<(), CargoInvalidError> {
@@ -148,6 +163,12 @@ quick_error!{
         Toml { errs: Vec<ParserError> } {
             display("Error parsing config\nCaused by: {:?}", errs)
         }
+        /// An error parsing the version.
+        Version(err: version::CargoVersionError) {
+            cause(err)
+            display("Error parsing config\nCaused by: {}", err)
+            from()
+        }
     }
 }
 
@@ -157,7 +178,10 @@ mod tests {
 
     #[test]
     fn parse_toml_from_file() {
-        let args = CargoParseArgs::FromFile { path: "tests/native/Cargo.toml".into() };
+        let args = CargoParseArgs { 
+            dev: false, 
+            buf: CargoBufKind::FromFile { path: "tests/native/Cargo.toml".into() } 
+        };
 
         parse_toml(args).unwrap();
     }
@@ -175,7 +199,10 @@ mod tests {
             crate-type = ["rlib", "dylib"]
         "#;
 
-        let args = CargoParseArgs::FromBuf { buf: toml.as_bytes().into() };
+        let args = CargoParseArgs { 
+            dev: false, 
+            buf: CargoBufKind::FromBuf { buf: toml.as_bytes().into() }
+        };
 
         let toml = parse_toml(args).unwrap();
 
@@ -191,7 +218,10 @@ mod tests {
 
     macro_rules! assert_inavlid {
         ($input:expr, $err:pat) => ({
-            let args = CargoParseArgs::FromBuf { buf: $input.as_bytes().into() };
+            let args = CargoParseArgs { 
+                dev: false, 
+                buf: CargoBufKind::FromBuf { buf: $input.as_bytes().into() }
+            };
 
             let toml = parse_toml(args);
 
