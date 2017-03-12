@@ -100,7 +100,7 @@ pub fn parse_toml<'a>(args: CargoParseArgs<'a>) -> Result<CargoConfig<'a>, Cargo
     }?;
 
     if args.dev {
-        let dev_version = version::make_dev_version(&parsed.version)?;
+        let dev_version = version::get_dev_version(&parsed.version)?;
         parsed.version = dev_version.into();
     }
 

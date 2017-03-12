@@ -29,8 +29,10 @@ impl<'a> From<&'a ArgMatches<'a>> for CargoParseArgs<'a> {
             None => "Cargo.toml".into(),
         };
 
+        let is_release = args.is_present(RELEASE_ARG);
+
         CargoParseArgs {
-            dev: true,
+            dev: !is_release,
             buf: CargoBufKind::FromFile { path: path }
         }
     }

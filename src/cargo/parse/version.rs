@@ -4,7 +4,7 @@ use chrono::UTC;
 
 use semver::{Version, Identifier, SemVerError};
 
-pub fn make_dev_version(ver: &str) -> Result<String, CargoVersionError> {
+pub fn get_dev_version(ver: &str) -> Result<String, CargoVersionError> {
 	let mut ver = Version::parse(ver)?;
 	let build = UTC::now().timestamp();
 
