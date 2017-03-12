@@ -10,3 +10,5 @@ term-painter = "*"
 toml = { version = "0.2", features = ["serde"], default-features = false }
 xml-rs = "*"
 zip = "*"
+chrono = "0.3"
+semver = "0.6.0"

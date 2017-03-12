@@ -29,7 +29,10 @@ impl<'a> From<&'a ArgMatches<'a>> for CargoParseArgs<'a> {
             None => "Cargo.toml".into(),
         };
 
-        CargoParseArgs::FromFile { path: path }
+        CargoParseArgs {
+            dev: true,
+            buf: CargoBufKind::FromFile { path: path }
+        }
     }
 }
 
@@ -43,7 +46,7 @@ impl<'a> From<&'a ArgMatches<'a>> for CargoBuildKind {
     }
 }
 
-/// Get the build profile from program input.
+/// Get the crate version from metadata.
 impl<'a> From<&'a ArgMatches<'a>> for CargoBuildProfile {
     fn from(args: &'a ArgMatches<'a>) -> Self {
         match args.is_present(RELEASE_ARG) {

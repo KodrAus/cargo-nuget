@@ -5,6 +5,8 @@ extern crate term_painter;
 extern crate xml;
 extern crate zip;
 extern crate toml;
+extern crate semver;
+extern crate chrono;
 
 #[cfg(test)]
 #[macro_use]
