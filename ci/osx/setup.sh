@@ -9,13 +9,8 @@ RUST_DOWNLOAD_URL=https://static.rust-lang.org/dist/$RUST_ARCHIVE.tar.gz
 curl -L $DOTNET_SDK_DOWNLOAD_URL --output dotnet.tar.gz
 mkdir $HOME/dotnet
 tar zxf dotnet.tar.gz -C $HOME/dotnet
-export PATH=$HOME/dotnet:$PATH
 
 # Install Rust
 curl -L $RUST_DOWNLOAD_URL --output rust.tar.gz
 tar zxf rust.tar.gz
 ./$RUST_ARCHIVE/install.sh
-
-ls $HOME/dotnet
-
-dotnet --info
