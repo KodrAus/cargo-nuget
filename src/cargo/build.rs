@@ -105,7 +105,7 @@ pub fn build_lib<'a>(args: CargoBuildArgs<'a>) -> Result<CargoBuildOutput, Cargo
     match path.exists() {
         true => {
             Ok(CargoBuildOutput {
-                path: path.into(),
+                path: path,
                 target: args.target,
             })
         }
