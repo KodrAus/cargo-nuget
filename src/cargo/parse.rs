@@ -64,9 +64,7 @@ fn parse_config_from_toml(toml: &BTreeMap<String, Value>) -> Result<CargoConfig,
         ?
         .iter()
         .filter_map(|a| a.as_str())
-        .map(|a| {
-            a.to_owned()
-        })
+        .map(|a| a.to_owned())
         .collect();
 
     Ok(CargoConfig {
@@ -169,7 +167,7 @@ mod tests {
     #[test]
     fn parse_toml_from_file() {
         let args = CargoParseArgs {
-            buf: CargoBufKind::FromFile { path: "tests/native/Cargo.toml".into() } 
+            buf: CargoBufKind::FromFile { path: "tests/native/Cargo.toml".into() },
         };
 
         parse_toml(args).unwrap();
@@ -188,9 +186,7 @@ mod tests {
             crate-type = ["rlib", "dylib"]
         "#;
 
-        let args = CargoParseArgs {
-            buf: CargoBufKind::FromBuf { buf: toml.as_bytes().into() }
-        };
+        let args = CargoParseArgs { buf: CargoBufKind::FromBuf { buf: toml.as_bytes().into() } };
 
         let toml = parse_toml(args).unwrap();
 
@@ -229,7 +225,7 @@ mod tests {
                 [lib]
                 crate-type = ["rlib", "dylib"]
             "#,
-                      CargoParseError::Key(CargoKeyError::Missing { key: "version" }));
+                        CargoParseError::Key(CargoKeyError::Missing { key: "version" }));
     }
 
 
@@ -243,7 +239,7 @@ mod tests {
                 [lib]
                 crate-type = ["rlib", "dylib"]
             "#,
-                      CargoParseError::Key(CargoKeyError::Missing { key: "name" }));
+                        CargoParseError::Key(CargoKeyError::Missing { key: "name" }));
     }
 
     #[test]
@@ -257,7 +253,7 @@ mod tests {
                 [lib]
                 crate-type = ["rlib", "staticlib"]
             "#,
-                      CargoParseError::NotADyLib);
+                        CargoParseError::NotADyLib);
     }
 
     #[test]
@@ -268,6 +264,6 @@ mod tests {
                 version = "0.1.0"
                 authors = ["Somebody", "Somebody Else"]
             "#,
-                      CargoParseError::NotADyLib);
+                        CargoParseError::NotADyLib);
     }
 }

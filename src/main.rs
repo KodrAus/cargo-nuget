@@ -33,7 +33,8 @@ fn main() {
             }
             Err(e) => {
                 println!("{}", Red.paint(e));
-                println!("\n{}", Red.bold().paint("The build did not finish successfully"));
+                println!("\n{}",
+                         Red.bold().paint("The build did not finish successfully"));
             }
         }
     }

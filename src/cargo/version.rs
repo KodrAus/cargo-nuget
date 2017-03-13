@@ -13,7 +13,8 @@ pub struct CargoLocalVersion {
     pub version: String,
 }
 
-pub fn local_version_tag<'a>(ver: CargoLocalVersionArgs<'a>) -> Result<CargoLocalVersion, CargoLocalVersionError> {
+pub fn local_version_tag<'a>(ver: CargoLocalVersionArgs<'a>)
+                             -> Result<CargoLocalVersion, CargoLocalVersionError> {
     let mut ver = Version::parse(ver.version)?;
     let build = UTC::now().timestamp();
 
@@ -25,9 +26,7 @@ pub fn local_version_tag<'a>(ver: CargoLocalVersionArgs<'a>) -> Result<CargoLoca
 
     add_pretag(&mut ver, "dev", build);
 
-    Ok(CargoLocalVersion { 
-        version: ver.to_string() 
-    })
+    Ok(CargoLocalVersion { version: ver.to_string() })
 }
 
 fn add_pretag(ver: &mut Version, tag: &str, num: u64) {
@@ -41,7 +40,7 @@ fn add_pretag(ver: &mut Version, tag: &str, num: u64) {
 }
 
 quick_error!{
-    /// An error encountered while updating a semver version.
+/// An error encountered while updating a semver version.
     #[derive(Debug)]
     pub enum CargoLocalVersionError {
         Parse(err: SemVerError) {

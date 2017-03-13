@@ -213,26 +213,26 @@ fn write_content_types<W>(writer: &mut ZipWriter<W>) -> Result<(), NugetPackErro
 quick_error!{
     #[derive(Debug)]
     pub enum NugetPackError {
-        /// No valid platform targets were available
+/// No valid platform targets were available
         NoValidTargets {
             display("No valid platform targets were supplied\nThis probably means you're running on an unsupported platform")
         }
-        /// A zip writing error.
+/// A zip writing error.
         Zip(err: ZipError) {
             display("Error building nupkg\nCaused by: {}", err)
             from()
         }
-        /// A general io error.
+/// A general io error.
         Io(err: IoError) {
             display("Error building nupkg\nCaused by: {}", err)
             from()
         }
-        /// An xml formatting error.
+/// An xml formatting error.
         Xml(err: xml::Error) {
             display("Error building nupkg\nCaused by: {}", err)
             from()
         }
-        /// An error with a specific library.
+/// An error with a specific library.
         WriteLib { rid: String, lib_path: String, err: NugetWriteLibError } {
             display("Error reading lib {} at path {}\nCaused by: {}", rid, lib_path, err)
         }

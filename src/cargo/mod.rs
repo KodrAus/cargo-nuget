@@ -31,9 +31,7 @@ impl<'a> From<&'a ArgMatches<'a>> for CargoParseArgs<'a> {
             None => "Cargo.toml".into(),
         };
 
-        CargoParseArgs {
-            buf: CargoBufKind::FromFile { path: path }
-        }
+        CargoParseArgs { buf: CargoBufKind::FromFile { path: path } }
     }
 }
 
@@ -60,9 +58,7 @@ impl<'a> From<&'a ArgMatches<'a>> for CargoBuildProfile {
 /// Build args to add a dev tag from toml config.
 impl<'a> From<&'a CargoConfig> for CargoLocalVersionArgs<'a> {
     fn from(cargo: &'a CargoConfig) -> Self {
-        CargoLocalVersionArgs {
-            version: &cargo.version
-        }
+        CargoLocalVersionArgs { version: &cargo.version }
     }
 }
 

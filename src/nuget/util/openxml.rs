@@ -42,7 +42,7 @@ pub fn content_types() -> Result<(PathBuf, Vec<u8>), xml::Error> {
     Ok((path, writer.into_inner()))
 }
 
-pub fn relationships<P>(nuspec_path: P) -> Result<(PathBuf, Vec<u8>), xml::Error> 
+pub fn relationships<P>(nuspec_path: P) -> Result<(PathBuf, Vec<u8>), xml::Error>
     where P: AsRef<Path>
 {
     let nuspec_path = nuspec_path.as_ref();

@@ -70,7 +70,7 @@ impl CargoBuildTarget {
     /// Get the platform specific prefix for the build output.
     fn prefix(&self) -> Option<&'static str> {
         match *self {
-            CargoBuildTarget::Local => LOCAL_PREFIX
+            CargoBuildTarget::Local => LOCAL_PREFIX,
         }
     }
 }
@@ -97,7 +97,7 @@ pub fn build_lib<'a>(args: CargoBuildArgs<'a>) -> Result<CargoBuildOutput, Cargo
     // Run a specialised command if given, but always run `cargo build`
     let cmds = match args.kind {
         CargoBuildKind::Build => vec![CargoBuildKind::Build],
-        kind => vec![kind, CargoBuildKind::Build]
+        kind => vec![kind, CargoBuildKind::Build],
     };
 
     cargo_commands(&args.work_dir, &cmds, args.profile, args.quiet)?;
@@ -123,8 +123,8 @@ fn output_path<'a>(args: &CargoBuildArgs<'a>) -> PathBuf {
         Some(prefix) => {
             let name = format!("{}{}", prefix, args.output_name);
             Cow::Owned(name)
-        },
-        None => Cow::Borrowed(args.output_name.as_ref())
+        }
+        None => Cow::Borrowed(args.output_name.as_ref()),
     };
 
     output.push(args.work_dir.as_ref());
@@ -136,7 +136,11 @@ fn output_path<'a>(args: &CargoBuildArgs<'a>) -> PathBuf {
     output
 }
 
-fn cargo_commands(work_dir: &Path, kinds: &[CargoBuildKind], profile: CargoBuildProfile, quiet: bool) -> Result<(), CargoBuildError> {
+fn cargo_commands(work_dir: &Path,
+                  kinds: &[CargoBuildKind],
+                  profile: CargoBuildProfile,
+                  quiet: bool)
+                  -> Result<(), CargoBuildError> {
     for kind in kinds {
         cargo_command(work_dir, *kind, profile, quiet)?;
     }
@@ -144,7 +148,11 @@ fn cargo_commands(work_dir: &Path, kinds: &[CargoBuildKind], profile: CargoBuild
     Ok(())
 }
 
-fn cargo_command(work_dir: &Path, kind: CargoBuildKind, profile: CargoBuildProfile, quiet: bool) -> Result<(), CargoBuildError> {
+fn cargo_command(work_dir: &Path,
+                 kind: CargoBuildKind,
+                 profile: CargoBuildProfile,
+                 quiet: bool)
+                 -> Result<(), CargoBuildError> {
     let mut cargo = Command::new("cargo");
 
     cargo.current_dir(work_dir);
@@ -152,8 +160,7 @@ fn cargo_command(work_dir: &Path, kind: CargoBuildKind, profile: CargoBuildProfi
     if quiet {
         cargo.stdout(Stdio::null());
         cargo.stderr(Stdio::null());
-    }
-    else {
+    } else {
         cargo.stdout(Stdio::inherit());
         cargo.stderr(Stdio::inherit());
     }
@@ -171,7 +178,7 @@ fn cargo_command(work_dir: &Path, kind: CargoBuildKind, profile: CargoBuildProfi
 
     match output.status.success() {
         true => Ok(()),
-        false => Err(CargoBuildError::Run)
+        false => Err(CargoBuildError::Run),
     }
 }
 
