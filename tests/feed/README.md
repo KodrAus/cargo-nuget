@@ -1,0 +1,1 @@
+This is a folder the `dotnet` project will check for packages.
