@@ -28,7 +28,7 @@ test_script:
   - cargo test --verbose
   - cargo build
 
-  - ps: .\target\debug\cargo-nuget.exe --test --cargo-build-quiet --cargo-dir .\tests\native\ --nupkg-dir .\tests\feed\
+  - ps: .\target\debug\cargo-nuget.exe pack --test --cargo-build-quiet --cargo-dir .\tests\native\ --nupkg-dir .\tests\feed\
 
   - dotnet restore .\tests\dotnet\dotnet.csproj --configfile .\Nuget.Config
   - dotnet run --project .\tests\dotnet\dotnet.csproj

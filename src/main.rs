@@ -26,15 +26,21 @@ use clap::ArgMatches;
 fn main() {
     let args = args::app().get_matches();
 
-    match build(args) {
-        Ok(_) => {
-            println!("{}", Green.paint("The build finished successfully"));
+    if let Some(args) = args.subcommand_matches(args::PACK_CMD) {
+        match build(args) {
+            Ok(_) => {
+                println!("{}", Green.paint("The build finished successfully"));
+            }
+            Err(e) => {
+                println!("{}", Red.paint(e));
+                println!("\n{}",
+                         Red.bold().paint("The build did not finish successfully"));
+            }
         }
-        Err(e) => {
-            println!("{}", Red.paint(e));
-            println!("\n{}",
-                     Red.bold().paint("The build did not finish successfully"));
-        }
+    }
+    else {
+        args::app().print_help().unwrap();
+        println!("");
     }
 }
 
@@ -55,10 +61,10 @@ macro_rules! pass {
     })
 }
 
-fn build(args: ArgMatches) -> Result<(), Box<Error>> {
-    let cargo_toml = pass!("reading cargo manifest" => &args => cargo::parse_toml);
+fn build(args: &ArgMatches) -> Result<(), Box<Error>> {
+    let cargo_toml = pass!("reading cargo manifest" => args => cargo::parse_toml);
 
-    let cargo_lib = pass!("building Rust lib" => (&args, &cargo_toml) => |args| {
+    let cargo_lib = pass!("building Rust lib" => (args, &cargo_toml) => |args| {
         let result = cargo::build_lib(args);
         println!("");
 
@@ -69,7 +75,7 @@ fn build(args: ArgMatches) -> Result<(), Box<Error>> {
 
     let nupkg = pass!("building nupkg" => (&nuspec, &cargo_lib) => nuget::pack);
 
-    pass!("saving nupkg" => (&args, &nupkg) => nuget::save_nupkg);
+    pass!("saving nupkg" => (args, &nupkg) => nuget::save_nupkg);
 
     Ok(())
 }

@@ -22,7 +22,7 @@ $ cargo install cargo-nuget
 
 ## Usage
 
-Running `cargo-nuget` will attempt to pack a crate in the current directory as a `nupkg`:
+Running `cargo-nuget pack` will attempt to pack a crate in the current directory as a `nupkg`:
 
 ```shell
 $ cargo-nuget
@@ -30,7 +30,7 @@ $ tree
 .
 ├── Cargo.lock
 ├── Cargo.toml
-├── your_crate.0.1.0.nupkg
+├── your_crate.0.1.0-dev.1489461345.nupkg
 ├── src
 │   └── lib.rs
 └── target
@@ -55,10 +55,10 @@ Here's the basic workflow we want to support:
 Some additional options may be supplied:
 
 ```shell
-$ cargo-nuget --test
-$ cargo-nuget --cargo-dir=some-crate/path/
-$ cargo-nuget --nupkg-dir=some-folder/nuget/
-$ cargo-nuget --release
+$ cargo-nuget pack --test
+$ cargo-nuget pack --cargo-dir=some-crate/path/
+$ cargo-nuget pack --nupkg-dir=some-folder/nuget/
+$ cargo-nuget pack --release
 ```
 
 ## About
