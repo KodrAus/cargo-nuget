@@ -15,3 +15,7 @@ export PATH=$HOME/dotnet:$PATH
 curl -L $RUST_DOWNLOAD_URL --output rust.tar.gz
 tar zxf rust.tar.gz
 ./$RUST_ARCHIVE/install.sh
+
+ls $HOME/dotnet
+
+dotnet --info
