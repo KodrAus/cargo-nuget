@@ -11,7 +11,7 @@ Windows (MSVC x64)             | Stable  | [![Build status](https://ci.appveyor.
 ## Progress
 
 - [x] Package builds for local target
-- [ ] Release as cargo tool
+- [x] Release as cargo tool
 - [ ] Package builds for cross-platform targets
 
 ## Installation
