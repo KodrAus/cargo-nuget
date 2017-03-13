@@ -38,23 +38,25 @@ pub enum CargoBuildTarget {
 #[allow(dead_code)]
 const WINDOWS_EXTENSION: &'static str = "dll";
 #[allow(dead_code)]
-const UNIX_EXTENSION: &'static str = "so";
+const LINUX_EXTENSION: &'static str = "so";
 #[allow(dead_code)]
 const MACOS_EXTENSION: &'static str = "dylib";
 
 #[cfg(windows)]
 const LOCAL_EXTENSION: &'static str = WINDOWS_EXTENSION;
-#[cfg(unix)]
-const LOCAL_EXTENSION: &'static str = UNIX_EXTENSION;
-#[cfg(macos)]
+#[cfg(target_os = "linux")]
+const LOCAL_EXTENSION: &'static str = LINUX_EXTENSION;
+#[cfg(target_os = "macos")]
 const LOCAL_EXTENSION: &'static str = MACOS_EXTENSION;
 
 #[allow(dead_code)]
 const UNIX_PREFIX: &'static str = "lib";
 
-#[cfg(unix)]
+#[cfg(target_os = "linux")]
 const LOCAL_PREFIX: Option<&'static str> = Some(UNIX_PREFIX);
-#[cfg(not(unix))]
+#[cfg(target_os = "macos")]
+const LOCAL_PREFIX: Option<&'static str> = Some(UNIX_PREFIX);
+#[cfg(windows)]
 const LOCAL_PREFIX: Option<&'static str> = None;
 
 impl CargoBuildTarget {

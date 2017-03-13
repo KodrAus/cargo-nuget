@@ -15,7 +15,7 @@ use super::util::{xml, openxml};
 pub enum NugetTarget {
     Unknown,
     Windows(NugetArch),
-    Unix(NugetArch),
+    Linux(NugetArch),
     MacOS(NugetArch),
 }
 
@@ -35,7 +35,7 @@ impl NugetTarget {
         match *self {
             NugetTarget::Windows(ref arch) => path("win", arch.rid()),
             NugetTarget::MacOS(ref arch) => path("osx", arch.rid()),
-            NugetTarget::Unix(ref arch) => path("unix", arch.rid()),
+            NugetTarget::Linux(ref arch) => path("linux", arch.rid()),
             _ => "any".into(),
         }
     }
@@ -73,16 +73,18 @@ const X64_ARCH: NugetArch = NugetArch::x64;
 const LOCAL_ARCH: NugetArch = X86_ARCH;
 #[cfg(target_arch = "x86_64")]
 const LOCAL_ARCH: NugetArch = X64_ARCH;
+
 #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
 const LOCAL_ARCH: NugetArch = NugetArch::Unknown;
 
 #[cfg(windows)]
 const LOCAL_TARGET: NugetTarget = NugetTarget::Windows(LOCAL_ARCH);
-#[cfg(macos)]
+#[cfg(target_os = "macos")]
 const LOCAL_TARGET: NugetTarget = NugetTarget::MacOS(LOCAL_ARCH);
-#[cfg(unix)]
-const LOCAL_TARGET: NugetTarget = NugetTarget::Unix(LOCAL_ARCH);
-#[cfg(not(any(windows, macos, unix)))]
+#[cfg(target_os = "linux")]
+const LOCAL_TARGET: NugetTarget = NugetTarget::Linux(LOCAL_ARCH);
+
+#[cfg(not(any(windows, target_os = "macos", target_os = "linux")))]
 const LOCAL_TARGET: NugetTarget = NugetTarget::Unknown;
 
 /// Args for building a `nupkg` with potentially multiple targets.
