@@ -1,6 +1,7 @@
 set -e
 
 DOTNET_SDK_DOWNLOAD_URL=https://dotnetcli.blob.core.windows.net/dotnet/Sdk/$DOTNET_SDK_VERSION/dotnet-dev-osx-x64.$DOTNET_SDK_VERSION.tar.gz
+
 RUST_ARCHIVE=rust-$RUST_VERSION-x86_64-apple-darwin
 RUST_DOWNLOAD_URL=https://static.rust-lang.org/dist/$RUST_ARCHIVE.tar.gz
 
