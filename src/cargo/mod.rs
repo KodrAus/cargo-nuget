@@ -2,9 +2,11 @@
 
 mod build;
 mod parse;
+mod version;
 
 pub use self::build::*;
 pub use self::parse::*;
+pub use self::version::*;
 
 use std::borrow::Cow;
 use std::path::PathBuf;
@@ -29,10 +31,7 @@ impl<'a> From<&'a ArgMatches<'a>> for CargoParseArgs<'a> {
             None => "Cargo.toml".into(),
         };
 
-        let is_release = args.is_present(RELEASE_ARG);
-
         CargoParseArgs {
-            dev: !is_release,
             buf: CargoBufKind::FromFile { path: path }
         }
     }
@@ -48,7 +47,7 @@ impl<'a> From<&'a ArgMatches<'a>> for CargoBuildKind {
     }
 }
 
-/// Get the crate version from metadata.
+/// Get the build profile from metadata.
 impl<'a> From<&'a ArgMatches<'a>> for CargoBuildProfile {
     fn from(args: &'a ArgMatches<'a>) -> Self {
         match args.is_present(RELEASE_ARG) {
@@ -58,9 +57,18 @@ impl<'a> From<&'a ArgMatches<'a>> for CargoBuildProfile {
     }
 }
 
+/// Build args to add a dev tag from toml config.
+impl<'a> From<&'a CargoConfig> for CargoLocalVersionArgs<'a> {
+    fn from(cargo: &'a CargoConfig) -> Self {
+        CargoLocalVersionArgs {
+            version: &cargo.version
+        }
+    }
+}
+
 /// Build args to run a cargo command from program input and toml config.
-impl<'a> From<(&'a ArgMatches<'a>, &'a CargoConfig<'a>)> for CargoBuildArgs<'a> {
-    fn from((args, cargo): (&'a ArgMatches<'a>, &'a CargoConfig<'a>)) -> Self {
+impl<'a> From<(&'a ArgMatches<'a>, &'a CargoConfig)> for CargoBuildArgs<'a> {
+    fn from((args, cargo): (&'a ArgMatches<'a>, &'a CargoConfig)) -> Self {
         let path = match args.value_of(CARGO_WORK_DIR_ARG) {
             Some(path) => path.into(),
             None => PathBuf::from("."),

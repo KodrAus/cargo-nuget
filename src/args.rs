@@ -11,7 +11,7 @@ pub const NUPKG_DIR_ARG: &'static str = "nupkg-dir";
 pub fn app<'a, 'b>() -> App<'a, 'b> {
     App::new("cargo-nuget")
         .subcommand(SubCommand::with_name(PACK_CMD)
-            .about("Pack a Rust library as a Nuget package") 
+            .about("Pack a Rust library as a Nuget package for local development") 
             .args(&[Arg::with_name(CARGO_WORK_DIR_ARG)
                  .long(CARGO_WORK_DIR_ARG)
                  .takes_value(true)

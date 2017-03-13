@@ -1,7 +1,3 @@
-//! Parse metadata out of a `Cargo.toml`.
-
-mod version;
-
 use std::str::{self, Utf8Error};
 use std::collections::BTreeMap;
 use std::io::{Read, Error as IoError};
@@ -9,12 +5,17 @@ use std::borrow::Cow;
 use std::fs::File;
 use toml::{Parser, ParserError, Value};
 
+macro_rules! toml_val {
+    ($toml:ident [ $key:expr ] . $cast:ident ( )) => ({
+        $toml.get($key).and_then(|k| k.$cast()).ok_or(CargoKeyError::Missing { key: $key })
+    })
+}
+
 /// Args for parsing a `Cargo.toml` package metadata file.
 ///
 /// The source can either be a relative filepath or a byte buffer.
 #[derive(Debug, PartialEq)]
 pub struct CargoParseArgs<'a> {
-    pub dev: bool,
     pub buf: CargoBufKind<'a>,
 }
 
@@ -26,23 +27,59 @@ pub enum CargoBufKind<'a> {
 
 /// The parsed `Cargo.toml` metadata.
 #[derive(Debug, PartialEq)]
-pub struct CargoConfig<'a> {
-    pub name: Cow<'a, str>,
-    pub version: Cow<'a, str>,
-    pub authors: Vec<Cow<'a, str>>,
-    pub description: Cow<'a, str>,
-}
-
-macro_rules! toml_val {
-    ($toml:ident [ $key:expr ] . $cast:ident ( )) => ({
-        $toml.get($key).and_then(|k| k.$cast()).ok_or(CargoInvalidError::Missing { key: $key })
-    })
+pub struct CargoConfig {
+    pub name: String,
+    pub version: String,
+    pub authors: Vec<String>,
+    pub description: String,
 }
 
 /// Parse `CargoConfig` from the given source.
-pub fn parse_toml<'a>(args: CargoParseArgs<'a>) -> Result<CargoConfig<'a>, CargoParseError> {
-    // Get a buffer to the toml file
-    let buf = match args.buf {
+pub fn parse_toml<'a>(args: CargoParseArgs<'a>) -> Result<CargoConfig, CargoParseError> {
+    let buf = get_buf(args.buf)?;
+
+    let utf8 = str::from_utf8(&buf)?;
+    let mut parser = Parser::new(utf8);
+
+    let toml = parser.parse().ok_or(CargoParseError::Toml { errs: parser.errors })?;
+
+    let is_dylib = is_dylib(&toml).unwrap_or(false);
+
+    if !is_dylib {
+        Err(CargoParseError::NotADyLib)?;
+    }
+
+    let config = parse_config_from_toml(&toml)?;
+
+    Ok(config)
+}
+
+/// Parse the toml tree to a `CargoConfig`.
+fn parse_config_from_toml(toml: &BTreeMap<String, Value>) -> Result<CargoConfig, CargoKeyError> {
+    let pkg = toml_val!(toml["package"].as_table())?;
+    let name = toml_val!(pkg["name"].as_str())?.to_owned();
+    let ver = toml_val!(pkg["version"].as_str())?.to_owned();
+    let desc = toml_val!(pkg["description"].as_str())?.to_owned();
+    let authors = toml_val!(pkg["authors"].as_slice())
+        ?
+        .iter()
+        .filter_map(|a| a.as_str())
+        .map(|a| {
+            a.to_owned()
+        })
+        .collect();
+
+    Ok(CargoConfig {
+        name: name,
+        version: ver,
+        authors: authors,
+        description: desc,
+    })
+}
+
+/// Get a toml byte buffer.
+fn get_buf<'a>(buf: CargoBufKind<'a>) -> Result<Cow<'a, [u8]>, CargoParseError> {
+    match buf {
         // Read the file to an owned buffer
         CargoBufKind::FromFile { path } => {
             let mut buf = Vec::new();
@@ -61,53 +98,15 @@ pub fn parse_toml<'a>(args: CargoParseArgs<'a>) -> Result<CargoConfig<'a>, Cargo
                     }
                 })?;
 
-            Cow::Owned(buf)
+            Ok(Cow::Owned(buf))
         }
         // Just use the buffer given
-        CargoBufKind::FromBuf { buf } => buf,
-    };
-
-    let utf8 = str::from_utf8(&buf)?;
-    let mut parser = Parser::new(utf8);
-
-    // Parse the toml config
-    let mut parsed = match parser.parse() {
-        Some(toml) => {
-            ensure_crate_is_dylib(&toml).map_err(|_| CargoInvalidError::NotADyLib)?;
-
-            let pkg = toml_val!(toml["package"].as_table())?;
-            let name = toml_val!(pkg["name"].as_str())?.to_owned();
-            let ver = toml_val!(pkg["version"].as_str())?.to_owned();
-            let desc = toml_val!(pkg["description"].as_str())?.to_owned();
-            let authors = toml_val!(pkg["authors"].as_slice())
-                ?
-                .iter()
-                .filter_map(|a| a.as_str())
-                .map(|a| {
-                    let author = a.to_owned();
-                    Cow::Owned(author)
-                })
-                .collect();
-
-            Ok(CargoConfig {
-                name: Cow::Owned(name),
-                version: Cow::Owned(ver),
-                authors: authors,
-                description: Cow::Owned(desc),
-            })
-        }
-        None => Err(CargoParseError::Toml { errs: parser.errors }),
-    }?;
-
-    if args.dev {
-        let dev_version = version::get_dev_version(&parsed.version)?;
-        parsed.version = dev_version.into();
+        CargoBufKind::FromBuf { buf } => Ok(buf),
     }
-
-    Ok(parsed)
 }
 
-fn ensure_crate_is_dylib(toml: &BTreeMap<String, Value>) -> Result<(), CargoInvalidError> {
+/// Check if the toml specifies a dynamic library.
+fn is_dylib(toml: &BTreeMap<String, Value>) -> Result<bool, CargoParseError> {
     let lib = toml_val!(toml["lib"].as_table())?;
 
     let is_dylib = toml_val!(lib["crate-type"].as_slice())
@@ -117,23 +116,17 @@ fn ensure_crate_is_dylib(toml: &BTreeMap<String, Value>) -> Result<(), CargoInva
         .any(|t| t == "dylib");
 
     match is_dylib {
-        true => Ok(()),
-        _ => Err(CargoInvalidError::NotADyLib),
+        true => Ok(true),
+        _ => Ok(false),
     }
 }
 
 quick_error!{
+    /// An error encountered while parsing Cargo configuration.
     #[derive(Debug)]
-    pub enum CargoInvalidError {
-        /// A required value that wasn't in the config.
-        ///
-        /// This could be because it isn't present, in the wrong place,
-        /// or has the wrong kind of value.
+    pub enum CargoKeyError {
         Missing { key: &'static str } {
             display("The '{}' key is required, but wasn't found", key)
-        }
-        NotADyLib {
-            display("The crate must include `dylib` in `lib.crate-type`")
         }
     }
 }
@@ -153,21 +146,18 @@ quick_error!{
             display("Error parsing config\nCaused by: {}", err)
             from()
         }
-        /// The cargo config is missing data.
-        Invalid(err: CargoInvalidError) {
+        Key(err: CargoKeyError){
             cause(err)
-            display("The config is invalid\nCaused by: {}", err)
+            display("Error parsing config\nCaused by: {}", err)
             from()
         }
         /// An error parsing the input as TOML.
         Toml { errs: Vec<ParserError> } {
             display("Error parsing config\nCaused by: {:?}", errs)
         }
-        /// An error parsing the version.
-        Version(err: version::CargoVersionError) {
-            cause(err)
-            display("Error parsing config\nCaused by: {}", err)
-            from()
+        /// The crate isn't a dynamic library.
+        NotADyLib {
+            display("The crate must include `dylib` in `lib.crate-type`")
         }
     }
 }
@@ -178,8 +168,7 @@ mod tests {
 
     #[test]
     fn parse_toml_from_file() {
-        let args = CargoParseArgs { 
-            dev: false, 
+        let args = CargoParseArgs {
             buf: CargoBufKind::FromFile { path: "tests/native/Cargo.toml".into() } 
         };
 
@@ -199,8 +188,7 @@ mod tests {
             crate-type = ["rlib", "dylib"]
         "#;
 
-        let args = CargoParseArgs { 
-            dev: false, 
+        let args = CargoParseArgs {
             buf: CargoBufKind::FromBuf { buf: toml.as_bytes().into() }
         };
 
@@ -218,8 +206,7 @@ mod tests {
 
     macro_rules! assert_inavlid {
         ($input:expr, $err:pat) => ({
-            let args = CargoParseArgs { 
-                dev: false, 
+            let args = CargoParseArgs {
                 buf: CargoBufKind::FromBuf { buf: $input.as_bytes().into() }
             };
 
@@ -242,7 +229,7 @@ mod tests {
                 [lib]
                 crate-type = ["rlib", "dylib"]
             "#,
-                      CargoParseError::Invalid(CargoInvalidError::Missing { key: "version" }));
+                      CargoParseError::Key(CargoKeyError::Missing { key: "version" }));
     }
 
 
@@ -256,7 +243,7 @@ mod tests {
                 [lib]
                 crate-type = ["rlib", "dylib"]
             "#,
-                      CargoParseError::Invalid(CargoInvalidError::Missing { key: "name" }));
+                      CargoParseError::Key(CargoKeyError::Missing { key: "name" }));
     }
 
     #[test]
@@ -270,7 +257,7 @@ mod tests {
                 [lib]
                 crate-type = ["rlib", "staticlib"]
             "#,
-                      CargoParseError::Invalid(CargoInvalidError::NotADyLib));
+                      CargoParseError::NotADyLib);
     }
 
     #[test]
@@ -281,6 +268,6 @@ mod tests {
                 version = "0.1.0"
                 authors = ["Somebody", "Somebody Else"]
             "#,
-                      CargoParseError::Invalid(CargoInvalidError::NotADyLib));
+                      CargoParseError::NotADyLib);
     }
 }

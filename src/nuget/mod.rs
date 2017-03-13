@@ -48,8 +48,8 @@ impl Debug for Buf {
 }
 
 /// Build args to format a nuspec from cargo toml.
-impl<'a> From<&'a CargoConfig<'a>> for NugetSpecArgs<'a> {
-    fn from(cargo: &'a CargoConfig<'a>) -> Self {
+impl<'a> From<&'a CargoConfig> for NugetSpecArgs<'a> {
+    fn from(cargo: &'a CargoConfig) -> Self {
         NugetSpecArgs {
             id: Cow::Borrowed(&cargo.name),
             version: Cow::Borrowed(&cargo.version),
@@ -70,8 +70,8 @@ impl From<CargoBuildTarget> for NugetTarget {
 }
 
 /// Build args to pack a nupkg from nuspec and cargo build.
-impl<'a> From<(&'a Nuspec<'a>, &'a CargoBuildOutput<'a>)> for NugetPackArgs<'a> {
-    fn from((nuspec, build): (&'a Nuspec, &'a CargoBuildOutput<'a>)) -> Self {
+impl<'a> From<(&'a Nuspec<'a>, &'a CargoBuildOutput)> for NugetPackArgs<'a> {
+    fn from((nuspec, build): (&'a Nuspec, &'a CargoBuildOutput)) -> Self {
         let mut libs = BTreeMap::new();
 
         libs.insert(build.target.into(), Cow::Borrowed(build.path.as_ref()));
