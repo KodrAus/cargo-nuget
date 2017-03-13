@@ -1,4 +1,4 @@
-This directory contains an example project using a Rust library packed by `cargo-nuget` and consumed in C#. It's structed as follows:
+This directory contains an example project using a Rust library packed by `cargo-nuget` and consumed in C#. It's structured as follows:
 
 ```
 .
@@ -8,7 +8,6 @@ This directory contains an example project using a Rust library packed by `cargo
 │   └── Program.cs
 ├── feed
 ├── native
-│   ├── Cargo.lock
 │   ├── Cargo.toml
 │   └── src
 │       └── lib.rs
@@ -24,7 +23,7 @@ This directory contains an example project using a Rust library packed by `cargo
 From this directory, run:
 
 ```shell
-$ cargo-nuget --cargo-dir ./native --nupkg-dir ./feed
+$ cargo-nuget pack --cargo-dir ./native --nupkg-dir ./feed
 ```
 
 This will produce a package, like `native_test.0.0.1.nupkg` and save it in the `feed` folder. 
@@ -36,5 +35,3 @@ You can then restore packages for the `dotnet` project to use the new native bin
 ```shell
 $ dotnet restore ./dotnet/dotnet.csproj --configfile ./Nuget.Config
 ```
-
-> **NOTE**: You'll probably have to clear nuget's cached `native_test` package if you change the binary but not the version number, or restore won't pick up your changes.
