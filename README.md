@@ -25,7 +25,7 @@ $ cargo install cargo-nuget
 Running `cargo-nuget pack` will attempt to pack a crate in the current directory as a `nupkg`:
 
 ```shell
-$ cargo-nuget
+$ cargo-nuget pack
 $ tree
 .
 ├── Cargo.lock
