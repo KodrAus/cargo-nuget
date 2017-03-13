@@ -12,6 +12,9 @@ extern crate chrono;
 #[macro_use]
 mod test_utils;
 
+#[macro_use]
+mod macros;
+
 pub mod cargo;
 pub mod nuget;
 mod args;
@@ -42,23 +45,6 @@ fn main() {
         args::app().print_help().unwrap();
         println!("");
     }
-}
-
-macro_rules! pass {
-    ($line:expr => $args:expr => $pass:expr) => ({
-        use term_painter::ToStyle;
-        use term_painter::Color::*;
-
-        let args = $args.into();
-
-        println!("{}\n\n{}", $line, Cyan.bold().paint(format!("input: {:?}\n", args)));
-
-        let result = $pass(args)?;
-
-        println!("{}\n", Cyan.bold().paint(format!("output: {:?}", result)));
-
-        result
-    })
 }
 
 fn build(args: &ArgMatches) -> Result<(), Box<Error>> {

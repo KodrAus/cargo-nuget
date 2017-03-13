@@ -86,12 +86,12 @@ pub struct CargoBuildArgs<'a> {
 
 /// The output of the `cargo` command.
 #[derive(Debug, Clone, PartialEq)]
-pub struct CargoBuildOutput<'a> {
-    pub path: Cow<'a, Path>,
+pub struct CargoBuildOutput {
+    pub path: PathBuf,
     pub target: CargoBuildTarget,
 }
 
-pub fn build_lib<'a>(args: CargoBuildArgs<'a>) -> Result<CargoBuildOutput<'a>, CargoBuildError> {
+pub fn build_lib<'a>(args: CargoBuildArgs<'a>) -> Result<CargoBuildOutput, CargoBuildError> {
     // Run a specialised command if given, but always run `cargo build`
     let cmds = match args.kind {
         CargoBuildKind::Build => vec![CargoBuildKind::Build],

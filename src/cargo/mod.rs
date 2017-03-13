@@ -59,8 +59,8 @@ impl<'a> From<&'a ArgMatches<'a>> for CargoBuildProfile {
 }
 
 /// Build args to run a cargo command from program input and toml config.
-impl<'a> From<(&'a ArgMatches<'a>, &'a CargoConfig<'a>)> for CargoBuildArgs<'a> {
-    fn from((args, cargo): (&'a ArgMatches<'a>, &'a CargoConfig<'a>)) -> Self {
+impl<'a> From<(&'a ArgMatches<'a>, &'a CargoConfig)> for CargoBuildArgs<'a> {
+    fn from((args, cargo): (&'a ArgMatches<'a>, &'a CargoConfig)) -> Self {
         let path = match args.value_of(CARGO_WORK_DIR_ARG) {
             Some(path) => path.into(),
             None => PathBuf::from("."),
