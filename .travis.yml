@@ -1,5 +1,3 @@
-sudo: true
-
 env:
   global:
     RUST_VERSION=1.15.1
@@ -10,26 +8,19 @@ matrix:
     - os: linux
       dist: trusty
       language: c
+      sudo: true
       services:
         - docker
 
-    # NOTE: Disabled because of super-long build queues for now
     # OSX
-    # - os: osx
-    #   language: rust
-    #   env:
-    #     - DOTNET_SDK_VERSION=1.0.0-rc4-004771
-    #     - DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
+    - os: osx
+      language: c
+      env:
+        - DOTNET_SDK_VERSION=1.0.1
+        - DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 
 before_script:
-  # Install the dotnet cli for osx
-  - |
-      if [[ "$TRAVIS_OS_NAME" == "osx" ]]; 
-        then export DOTNET_SDK_DOWNLOAD_URL=https://dotnetcli.blob.core.windows.net/dotnet/Sdk/$DOTNET_SDK_VERSION/dotnet-dev-osx-x64.$DOTNET_SDK_VERSION.tar.gz &&
-        curl -L $DOTNET_SDK_DOWNLOAD_URL --output dotnet.tar.gz &&
-        mkdir $HOME/dotnet &&
-        tar zxf dotnet.tar.gz -C $HOME/dotnet &&
-        export PATH=$HOME/dotnet:$PATH; fi
+  - ./ci/$TRAVIS_OS_NAME/setup.sh
 
 script:
   - ./ci/$TRAVIS_OS_NAME/test.sh

@@ -26,7 +26,7 @@ From this directory, run:
 $ cargo-nuget pack --cargo-dir ./native --nupkg-dir ./feed
 ```
 
-This will produce a package, like `native_test.0.0.1.nupkg` and save it in the `feed` folder. 
+This will produce a package, like `native_test.0.0.1-dev.123456789.nupkg` and save it in the `feed` folder. 
 
 ## Use the package in C#
 
