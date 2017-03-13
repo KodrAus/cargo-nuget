@@ -5,10 +5,11 @@ extern crate term_painter;
 extern crate xml;
 extern crate zip;
 extern crate toml;
+extern crate semver;
+extern crate chrono;
 
-#[cfg(test)]
 #[macro_use]
-mod test_utils;
+mod macros;
 
 pub mod cargo;
 pub mod nuget;
@@ -24,39 +25,33 @@ use clap::ArgMatches;
 fn main() {
     let args = args::app().get_matches();
 
-    match build(args) {
-        Ok(_) => {
-            println!("{}", Green.paint("The build finished successfully"));
+    // run pack command
+    if let Some(args) = args.subcommand_matches(args::PACK_CMD) {
+        match pack(args) {
+            Ok(_) => {
+                println!("{}", Green.paint("The build finished successfully"));
+            }
+            Err(e) => {
+                println!("{}", Red.paint(e));
+                println!("\n{}", Red.bold().paint("The build did not finish successfully"));
+            }
         }
-        Err(e) => {
-            println!("{}", Red.paint(e));
-            println!("\n{}",
-                     Red.bold().paint("The build did not finish successfully"));
-        }
+    }
+    // print help and exit
+    else {
+        args::app().print_help().unwrap();
+        println!("");
     }
 }
 
-macro_rules! pass {
-    ($line:expr => $args:expr => $pass:expr) => ({
-        use term_painter::ToStyle;
-        use term_painter::Color::*;
+fn pack(args: &ArgMatches) -> Result<(), Box<Error>> {
+    let mut cargo_toml = pass!("reading cargo manifest" => args => cargo::parse_toml);
 
-        let args = $args.into();
+    let local = pass!("adding local version tag" => &cargo_toml => cargo::local_version_tag);
 
-        println!("{}\n\n{}", $line, Cyan.bold().paint(format!("input: {:?}\n", args)));
+    cargo_toml.version = local.version;
 
-        let result = $pass(args)?;
-
-        println!("{}\n", Cyan.bold().paint(format!("output: {:?}", result)));
-
-        result
-    })
-}
-
-fn build(args: ArgMatches) -> Result<(), Box<Error>> {
-    let cargo_toml = pass!("reading cargo manifest" => &args => cargo::parse_toml);
-
-    let cargo_lib = pass!("building Rust lib" => (&args, &cargo_toml) => |args| {
+    let cargo_lib = pass!("building Rust lib" => (args, &cargo_toml) => |args| {
         let result = cargo::build_lib(args);
         println!("");
 
@@ -67,7 +62,7 @@ fn build(args: ArgMatches) -> Result<(), Box<Error>> {
 
     let nupkg = pass!("building nupkg" => (&nuspec, &cargo_lib) => nuget::pack);
 
-    pass!("saving nupkg" => (&args, &nupkg) => nuget::save_nupkg);
+    pass!("saving nupkg" => (args, &nupkg) => nuget::save_nupkg);
 
     Ok(())
 }
