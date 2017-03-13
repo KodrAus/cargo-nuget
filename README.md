@@ -1,4 +1,4 @@
-# `cargo-nuget`
+# `cargo-nuget` [![Latest Version](https://img.shields.io/crates/v/cargo-nuget.svg)](https://crates.io/crates/cargo-nuget)
 
 Pack native Rust libraries as .NET Nuget packages.
 
