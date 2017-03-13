@@ -10,6 +10,9 @@ curl -L $DOTNET_SDK_DOWNLOAD_URL --output dotnet.tar.gz
 mkdir $HOME/dotnet
 tar zxf dotnet.tar.gz -C $HOME/dotnet
 
+ln -s /usr/local/opt/openssl/lib/libcrypto.1.0.0.dylib /usr/local/lib/
+ln -s /usr/local/opt/openssl/lib/libssl.1.0.0.dylib /usr/local/lib/
+
 # Install Rust
 curl -L $RUST_DOWNLOAD_URL --output rust.tar.gz
 tar zxf rust.tar.gz
