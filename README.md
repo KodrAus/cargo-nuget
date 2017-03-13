@@ -39,7 +39,7 @@ $ tree
 For a complete set of commands:
 
 ```shell
-cargo-nuget --help
+$ cargo-nuget --help
 ```
 
 ### The process
