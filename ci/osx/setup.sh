@@ -8,7 +8,7 @@ RUST_DOWNLOAD_URL=https://static.rust-lang.org/dist/$RUST_ARCHIVE.tar.gz
 # Install the .NET SDK
 mkdir ./build/
 curl -L $DOTNET_SDK_DOWNLOAD_URL --output dotnet.tar.gz
-./build/installcli.ps1 -InstallDir $HOME/dotnet -NoPath -Version 1.0.1
+./build/installcli.sh -InstallDir $HOME/dotnet -NoPath -Version $DOTNET_SDK_VERSION
 
 ln -s /usr/local/opt/openssl/lib/libcrypto.1.0.0.dylib /usr/local/lib/
 ln -s /usr/local/opt/openssl/lib/libssl.1.0.0.dylib /usr/local/lib/
