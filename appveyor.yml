@@ -9,9 +9,10 @@ environment:
 install:
   # .NET CLI
   - ps: Remove-Item "C:\Program Files\dotnet" -recurse -erroraction silentlycontinue
-  - ps: Invoke-WebRequest $Env:DOTNET_SDK_DOWNLOAD_URL -OutFile dotnet.zip
-  - ps: Expand-Archive dotnet.zip -DestinationPath C:\dotnet
-  - ps: $env:PATH="$env:PATH;C:\dotnet"
+  - ps: mkdir -Force ".\build\" | Out-Null
+  - ps: Invoke-WebRequest "https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0/scripts/obtain/dotnet-install.ps1" -OutFile ".\build\installcli.ps1"
+  - ps: '& .\build\installcli.ps1 -InstallDir "C:\dotnet" -NoPath -Version 1.0.1'
+  - ps: $env:Path = "C:\dotnet;$env:Path"
   # Rust
   - ps: Start-FileDownload $Env:RUST_DOWNLOAD_URL -FileName "rust-stable.exe"
   - ps: .\rust-stable.exe /VERYSILENT /NORESTART /DIR="C:\rust" | Out-Null
