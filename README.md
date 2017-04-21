@@ -22,6 +22,8 @@ $ cargo install cargo-nuget
 
 ## Usage
 
+See [a complete example](https://github.com/KodrAus/cargo-nuget/tree/master/tests).
+
 Running `cargo-nuget pack` will attempt to pack a crate in the current directory as a `nupkg`:
 
 ```shell
