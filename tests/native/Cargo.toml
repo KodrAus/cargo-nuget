@@ -7,6 +7,6 @@ authors = ["Somebody", "Somebody Else"]
 description = "A library for testing cargo nuget"
 
 [lib]
-crate-type = ["dylib"]
+crate-type = ["cdylib"]
 
 [dependencies]

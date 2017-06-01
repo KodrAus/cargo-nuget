@@ -1,4 +1,5 @@
 set -e
+ulimit -n 512
 
 export PATH=$HOME/dotnet:$PATH
 

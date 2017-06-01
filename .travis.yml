@@ -16,7 +16,7 @@ matrix:
     - os: osx
       language: c
       env:
-        - DOTNET_SDK_VERSION=1.0.1
+        - DOTNET_SDK_VERSION=1.0.4
         - DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 
 before_script:
