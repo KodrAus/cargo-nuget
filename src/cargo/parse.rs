@@ -111,7 +111,7 @@ fn is_dylib(toml: &BTreeMap<String, Value>) -> Result<bool, CargoParseError> {
         ?
         .iter()
         .filter_map(|t| t.as_str())
-        .any(|t| t == "dylib");
+        .any(|t| t == "dylib" || t == "cdylib");
 
     match is_dylib {
         true => Ok(true),
@@ -165,16 +165,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn parse_toml_from_file() {
-        let args = CargoParseArgs {
-            buf: CargoBufKind::FromFile { path: "tests/native/Cargo.toml".into() },
-        };
-
-        parse_toml(args).unwrap();
-    }
-
-    #[test]
-    fn parse_toml_from_buf() {
+    fn parse_toml_to_config() {
         let toml = r#"
             [package]
             name = "native"
@@ -198,6 +189,37 @@ mod tests {
         };
 
         assert_eq!(expected, toml);
+    }
+
+    #[test]
+    fn parse_toml_from_file_is_valid() {
+        let args = CargoParseArgs {
+            buf: CargoBufKind::FromFile { path: "tests/native/Cargo.toml".into() },
+        };
+
+        let toml = parse_toml(args);
+
+        assert!(toml.is_ok());
+    }
+
+    #[test]
+    fn parse_toml_cdylib_is_valid() {
+        let toml = r#"
+            [package]
+            name = "native"
+            version = "0.1.0"
+            authors = ["Somebody", "Somebody Else"]
+            description = ""
+
+            [lib]
+            crate-type = ["rlib", "cdylib"]
+        "#;
+
+        let args = CargoParseArgs { buf: CargoBufKind::FromBuf { buf: toml.as_bytes().into() } };
+
+        let toml = parse_toml(args);
+
+        assert!(toml.is_ok());
     }
 
     macro_rules! assert_inavlid {
@@ -227,7 +249,6 @@ mod tests {
             "#,
                         CargoParseError::Key(CargoKeyError::Missing { key: "version" }));
     }
-
 
     #[test]
     fn parse_toml_missing_name() {
