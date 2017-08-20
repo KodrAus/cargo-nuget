@@ -1,15 +1,14 @@
 set -e
 
-DOTNET_SDK_DOWNLOAD_URL=https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0/scripts/obtain/dotnet-install.sh
+DOTNET_SDK_DOWNLOAD_URL=https://dotnetcli.blob.core.windows.net/dotnet/Sdk/$DOTNET_SDK_VERSION/dotnet-sdk-$DOTNET_SDK_VERSION-osx-x64.tar.gz
 
 RUST_ARCHIVE=rust-$RUST_VERSION-x86_64-apple-darwin
 RUST_DOWNLOAD_URL=https://static.rust-lang.org/dist/$RUST_ARCHIVE.tar.gz
 
 # Install the .NET SDK
 mkdir ./build/
-curl -L $DOTNET_SDK_DOWNLOAD_URL --output ./build/installcli.sh
-chmod +x ./build/installcli.sh
-./build/installcli.sh -InstallDir $HOME/dotnet -NoPath -Version $DOTNET_SDK_VERSION
+curl -SL $DOTNET_SDK_DOWNLOAD_URL --output build/dotnet.tar.gz
+tar -zxf build/dotnet.tar.gz -C $HOME/dotnet
 
 ln -s /usr/local/opt/openssl/lib/libcrypto.1.0.0.dylib /usr/local/lib/
 ln -s /usr/local/opt/openssl/lib/libssl.1.0.0.dylib /usr/local/lib/
