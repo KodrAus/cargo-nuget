@@ -4,10 +4,10 @@ Pack native Rust libraries as .NET Nuget packages.
 
 ## Build Status
 
-Platform                       | Rust Version      | DotNet SDK Version | Status
------------------------------- | ----------------- | ------------------ | ---------------
-Linux (Debian x64) / OSX (x64) | Stable (1.15.1)   | 1.0.4              | [![Build Status](https://travis-ci.org/KodrAus/cargo-nuget.svg?branch=master)](https://travis-ci.org/KodrAus/cargo-nuget)
-Windows (MSVC x64)             | Stable (1.15.1)   | 1.0.4              | [![Build status](https://ci.appveyor.com/api/projects/status/v7mum8fgs5ho3oua?svg=true)](https://ci.appveyor.com/project/KodrAus/nuget-rs)
+Platform                             | Rust Version      | DotNet SDK Version | Status
+------------------------------------ | ----------------- | ------------------ | ---------------
+Linux (Debian x64) / OSX (10.12 x64) | Stable (1.15.1)   | 2.0.0              | [![Build Status](https://travis-ci.org/KodrAus/cargo-nuget.svg?branch=master)](https://travis-ci.org/KodrAus/cargo-nuget)
+Windows (MSVC x64)                   | Stable (1.15.1)   | 2.0.0              | [![Build status](https://ci.appveyor.com/api/projects/status/v7mum8fgs5ho3oua?svg=true)](https://ci.appveyor.com/project/KodrAus/nuget-rs)
 
 ## Progress
 
