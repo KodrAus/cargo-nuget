@@ -16,6 +16,7 @@ matrix:
     # OSX
     - os: osx
       language: c
+      osx_image: xcode9
       env:
         - DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 
