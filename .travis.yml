@@ -1,6 +1,7 @@
 env:
   global:
-    RUST_VERSION=1.15.1
+    - RUST_VERSION=1.15.1
+    - DOTNET_SDK_VERSION=2.0.0
 
 matrix:
   include:
@@ -15,8 +16,8 @@ matrix:
     # OSX
     - os: osx
       language: c
+      osx_image: xcode9
       env:
-        - DOTNET_SDK_VERSION=1.0.4
         - DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 
 before_script:
