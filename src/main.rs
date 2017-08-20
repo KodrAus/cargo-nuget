@@ -1,5 +1,8 @@
+#![deny(warnings)]
+
 #[macro_use]
 extern crate quick_error;
+#[macro_use]
 extern crate clap;
 extern crate term_painter;
 extern crate xml;
