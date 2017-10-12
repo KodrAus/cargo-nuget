@@ -12,12 +12,12 @@ pub use self::save::*;
 
 use std::path::PathBuf;
 use std::fmt::{Debug, Formatter, Error as FmtError};
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use std::borrow::Cow;
 use std::ops::Deref;
 use clap::ArgMatches;
 
-use cargo::{CargoConfig, CargoBuildTarget, CargoBuildOutput};
+use cargo::{CargoConfig, CargoBuildOutput};
 use args::NUPKG_DIR_ARG;
 
 /// A wrapper around an owned byte buffer.
@@ -60,21 +60,16 @@ impl<'a> From<&'a CargoConfig> for NugetSpecArgs<'a> {
     }
 }
 
-/// Get a target, arch tuple from a cargo build target.
-impl From<CargoBuildTarget> for NugetTarget {
-    fn from(value: CargoBuildTarget) -> NugetTarget {
-        match value {
-            CargoBuildTarget::Local => NugetTarget::local(),
-        }
-    }
-}
-
 /// Build args to pack a nupkg from nuspec and cargo build.
-impl<'a> From<(&'a Nuspec<'a>, &'a CargoBuildOutput)> for NugetPackArgs<'a> {
-    fn from((nuspec, build): (&'a Nuspec, &'a CargoBuildOutput)) -> Self {
-        let mut libs = BTreeMap::new();
+impl<'a, I> From<(&'a Nuspec<'a>, I)> for NugetPackArgs<'a>
+    where I: IntoIterator<Item = &'a CargoBuildOutput>,
+{
+    fn from((nuspec, builds): (&'a Nuspec, I)) -> Self {
+        let mut libs = HashMap::new();
 
-        libs.insert(build.target.into(), Cow::Borrowed(build.path.as_ref()));
+        for build in builds {
+            libs.insert(build.target, Cow::Borrowed(build.path.as_ref()));
+        }
 
         NugetPackArgs {
             id: Cow::Borrowed(&nuspec.id),

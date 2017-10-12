@@ -5,121 +5,84 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::io::Error as IoError;
 
-/// The kind of cargo command to run.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum CargoBuildKind {
-    Build,
-    Test,
-}
+use args::{Action, Profile, Target, CrossTarget};
 
-/// The cargo build profile to use for the command.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum CargoBuildProfile {
-    Debug,
-    Release,
-}
-
-impl CargoBuildProfile {
+impl Profile {
     /// Get the path within the `target` folder for the output.
     fn path(&self) -> &'static str {
         match *self {
-            CargoBuildProfile::Debug => "debug",
-            CargoBuildProfile::Release => "release",
+            Profile::Debug => "debug",
+            Profile::Release => "release",
         }
     }
 }
 
-/// The platform to target for the output.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum CargoBuildTarget {
-    Local,
-}
-
-#[allow(dead_code)]
-const WINDOWS_EXTENSION: &'static str = "dll";
-#[allow(dead_code)]
-const LINUX_EXTENSION: &'static str = "so";
-#[allow(dead_code)]
-const MACOS_EXTENSION: &'static str = "dylib";
-
-#[cfg(windows)]
-const LOCAL_EXTENSION: &'static str = WINDOWS_EXTENSION;
-#[cfg(target_os = "linux")]
-const LOCAL_EXTENSION: &'static str = LINUX_EXTENSION;
-#[cfg(target_os = "macos")]
-const LOCAL_EXTENSION: &'static str = MACOS_EXTENSION;
-
-#[allow(dead_code)]
-const UNIX_PREFIX: &'static str = "lib";
-
-#[cfg(target_os = "linux")]
-const LOCAL_PREFIX: Option<&'static str> = Some(UNIX_PREFIX);
-#[cfg(target_os = "macos")]
-const LOCAL_PREFIX: Option<&'static str> = Some(UNIX_PREFIX);
-#[cfg(windows)]
-const LOCAL_PREFIX: Option<&'static str> = None;
-
-impl CargoBuildTarget {
+impl CrossTarget {
     /// Get the platform specific extension for the build output.
     fn extension(&self) -> &'static str {
         match *self {
-            CargoBuildTarget::Local => LOCAL_EXTENSION,
+            CrossTarget::Windows(_) => "dll",
+            CrossTarget::Linux(_) => "dll",
+            CrossTarget::MacOS(_) => "dylib",
         }
     }
 
     /// Get the platform specific prefix for the build output.
     fn prefix(&self) -> Option<&'static str> {
         match *self {
-            CargoBuildTarget::Local => LOCAL_PREFIX,
+            CrossTarget::Windows(_) => None,
+            CrossTarget::Linux(_) => Some("lib"),
+            CrossTarget::MacOS(_) => Some("lib"),
         }
     }
 }
 
 /// Args for running a `cargo` command for the native package.
 #[derive(Debug, Clone, PartialEq)]
-pub struct CargoBuildArgs<'a> {
+pub struct CargoLocalBuildArgs<'a> {
     pub work_dir: Cow<'a, Path>,
     pub output_name: Cow<'a, str>,
     pub quiet: bool,
-    pub kind: CargoBuildKind,
-    pub target: CargoBuildTarget,
-    pub profile: CargoBuildProfile,
+    pub kind: Action,
+    pub profile: Profile,
 }
 
 /// The output of the `cargo` command.
 #[derive(Debug, Clone, PartialEq)]
 pub struct CargoBuildOutput {
     pub path: PathBuf,
-    pub target: CargoBuildTarget,
+    pub target: Target,
 }
 
-pub fn build_lib<'a>(args: CargoBuildArgs<'a>) -> Result<CargoBuildOutput, CargoBuildError> {
+pub fn build_local<'a>(args: CargoLocalBuildArgs<'a>) -> Result<CargoBuildOutput, CargoLocalBuildError> {
+    let target = Target::Local;
+
     // Run a specialised command if given, but always run `cargo build`
     let cmds = match args.kind {
-        CargoBuildKind::Build => vec![CargoBuildKind::Build],
-        kind => vec![kind, CargoBuildKind::Build],
+        Action::Build => vec![Action::Build],
+        kind => vec![kind, Action::Build],
     };
 
     cargo_commands(&args.work_dir, &cmds, args.profile, args.quiet)?;
 
-    let path = output_path(&args);
+    let path = output_path(&args, target.cross().ok_or(CargoLocalBuildError::UnknownTarget)?);
 
     match path.exists() {
         true => {
             Ok(CargoBuildOutput {
                 path: path,
-                target: args.target,
+                target: target,
             })
         }
-        false => Err(CargoBuildError::MissingOutput { path: path }),
+        false => Err(CargoLocalBuildError::MissingOutput { path: path }),
     }
 }
 
 /// Get a path to the expected build output.
-fn output_path<'a>(args: &CargoBuildArgs<'a>) -> PathBuf {
+fn output_path<'a>(args: &CargoLocalBuildArgs<'a>, target: CrossTarget) -> PathBuf {
     let mut output = PathBuf::new();
 
-    let name = match args.target.prefix() {
+    let name = match target.prefix() {
         Some(prefix) => {
             let name = format!("{}{}", prefix, args.output_name);
             Cow::Owned(name)
@@ -131,16 +94,16 @@ fn output_path<'a>(args: &CargoBuildArgs<'a>) -> PathBuf {
     output.push("target");
     output.push(args.profile.path());
     output.push(name.as_ref());
-    output.set_extension(args.target.extension());
+    output.set_extension(target.extension());
 
     output
 }
 
 fn cargo_commands(work_dir: &Path,
-                  kinds: &[CargoBuildKind],
-                  profile: CargoBuildProfile,
+                  kinds: &[Action],
+                  profile: Profile,
                   quiet: bool)
-                  -> Result<(), CargoBuildError> {
+                  -> Result<(), CargoLocalBuildError> {
     for kind in kinds {
         cargo_command(work_dir, *kind, profile, quiet)?;
     }
@@ -149,10 +112,10 @@ fn cargo_commands(work_dir: &Path,
 }
 
 fn cargo_command(work_dir: &Path,
-                 kind: CargoBuildKind,
-                 profile: CargoBuildProfile,
+                 kind: Action,
+                 profile: Profile,
                  quiet: bool)
-                 -> Result<(), CargoBuildError> {
+                 -> Result<(), CargoLocalBuildError> {
     let mut cargo = Command::new("cargo");
 
     cargo.current_dir(work_dir);
@@ -166,26 +129,26 @@ fn cargo_command(work_dir: &Path,
     }
 
     cargo.arg(match kind {
-        CargoBuildKind::Build => "build",
-        CargoBuildKind::Test => "test",
+        Action::Build => "build",
+        Action::Test => "test",
     });
 
-    if profile == CargoBuildProfile::Release {
+    if profile == Profile::Release {
         cargo.arg("--release");
     }
 
-    let output = cargo.output().map_err(|e| CargoBuildError::from(e))?;
+    let output = cargo.output()?;
 
     match output.status.success() {
         true => Ok(()),
-        false => Err(CargoBuildError::Run),
+        false => Err(CargoLocalBuildError::Run),
     }
 }
 
 quick_error!{
     /// An error encountered while parsing Cargo configuration.
     #[derive(Debug)]
-    pub enum CargoBuildError {
+    pub enum CargoLocalBuildError {
         /// An io-related error reading from a file.
         Io (err: IoError) {
             cause(err)
@@ -194,6 +157,9 @@ quick_error!{
         }
         Run {
             display("Error running cargo build\nBuild output (if any) should be written to stderr")
+        }
+        UnknownTarget {
+            display("Unknown build target\nThis probably means you're running on an unsupported platform")
         }
         MissingOutput { path: PathBuf } {
             display("Build output was expected to be at {:?} but wasn't found", path)
@@ -206,17 +172,29 @@ mod tests {
     use std::path::Path;
     use super::*;
 
-    fn local_args() -> CargoBuildArgs<'static> {
+    fn local_args() -> CargoLocalBuildArgs<'static> {
         let p: &Path = "tests/native".as_ref();
 
-        CargoBuildArgs {
+        CargoLocalBuildArgs {
             work_dir: p.into(),
             output_name: "native_test".into(),
-            kind: CargoBuildKind::Build,
-            target: CargoBuildTarget::Local,
-            profile: CargoBuildProfile::Debug,
+            kind: Action::Build,
+            target: Target::Local,
+            profile: Profile::Debug,
             quiet: true,
         }
+    }
+
+    #[test]
+    fn local_target_extension() {
+        assert_eq!(LOCAL_EXTENSION, Target::Local.extension());
+        assert_eq!(LOCAL_EXTENSION, Target::Cross(CrossTarget::local()).extension());
+    }
+
+    #[test]
+    fn local_target_prefix() {
+        assert_eq!(LOCAL_PREFIX, Target::Local.prefix());
+        assert_eq!(LOCAL_PREFIX, Target::Cross(CrossTarget::local()).prefix());
     }
 
     #[test]
@@ -228,23 +206,23 @@ mod tests {
 
     #[test]
     fn cargo_build_release() {
-        let args = CargoBuildArgs { profile: CargoBuildProfile::Release, ..local_args() };
+        let args = CargoLocalBuildArgs { profile: Profile::Release, ..local_args() };
 
         build_lib(args).unwrap();
     }
 
     #[test]
     fn cargo_test_debug() {
-        let args = CargoBuildArgs { kind: CargoBuildKind::Test, ..local_args() };
+        let args = CargoLocalBuildArgs { kind: Action::Test, ..local_args() };
 
         build_lib(args).unwrap();
     }
 
     #[test]
     fn cargo_test_release() {
-        let args = CargoBuildArgs {
-            kind: CargoBuildKind::Test,
-            profile: CargoBuildProfile::Release,
+        let args = CargoLocalBuildArgs {
+            kind: Action::Test,
+            profile: Profile::Release,
             ..local_args()
         };
 
@@ -253,12 +231,12 @@ mod tests {
 
     #[test]
     fn cargo_build_missing_output() {
-        let args = CargoBuildArgs { output_name: "not_the_output".into(), ..local_args() };
+        let args = CargoLocalBuildArgs { output_name: "not_the_output".into(), ..local_args() };
 
         let result = build_lib(args);
 
         match result {
-            Err(CargoBuildError::MissingOutput { .. }) => (),
+            Err(CargoLocalBuildError::MissingOutput { .. }) => (),
             r => panic!("{:?}", r),
         }
     }
