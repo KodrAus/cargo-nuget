@@ -3,39 +3,9 @@
 use std::borrow::Cow;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
-use std::io::Error as IoError;
 
+use super::{CargoBuildOutput, CargoBuildError};
 use args::{Action, Profile, Target, CrossTarget};
-
-impl Profile {
-    /// Get the path within the `target` folder for the output.
-    fn path(&self) -> &'static str {
-        match *self {
-            Profile::Debug => "debug",
-            Profile::Release => "release",
-        }
-    }
-}
-
-impl CrossTarget {
-    /// Get the platform specific extension for the build output.
-    fn extension(&self) -> &'static str {
-        match *self {
-            CrossTarget::Windows(_) => "dll",
-            CrossTarget::Linux(_) => "dll",
-            CrossTarget::MacOS(_) => "dylib",
-        }
-    }
-
-    /// Get the platform specific prefix for the build output.
-    fn prefix(&self) -> Option<&'static str> {
-        match *self {
-            CrossTarget::Windows(_) => None,
-            CrossTarget::Linux(_) => Some("lib"),
-            CrossTarget::MacOS(_) => Some("lib"),
-        }
-    }
-}
 
 /// Args for running a `cargo` command for the native package.
 #[derive(Debug, Clone, PartialEq)]
@@ -43,29 +13,22 @@ pub struct CargoLocalBuildArgs<'a> {
     pub work_dir: Cow<'a, Path>,
     pub output_name: Cow<'a, str>,
     pub quiet: bool,
-    pub kind: Action,
+    pub action: Action,
     pub profile: Profile,
 }
 
-/// The output of the `cargo` command.
-#[derive(Debug, Clone, PartialEq)]
-pub struct CargoBuildOutput {
-    pub path: PathBuf,
-    pub target: Target,
-}
-
-pub fn build_local<'a>(args: CargoLocalBuildArgs<'a>) -> Result<CargoBuildOutput, CargoLocalBuildError> {
+pub fn build_local<'a>(args: CargoLocalBuildArgs<'a>) -> Result<CargoBuildOutput, CargoBuildError> {
     let target = Target::Local;
 
     // Run a specialised command if given, but always run `cargo build`
-    let cmds = match args.kind {
+    let cmds = match args.action {
         Action::Build => vec![Action::Build],
-        kind => vec![kind, Action::Build],
+        action => vec![action, Action::Build],
     };
 
     cargo_commands(&args.work_dir, &cmds, args.profile, args.quiet)?;
 
-    let path = output_path(&args, target.cross().ok_or(CargoLocalBuildError::UnknownTarget)?);
+    let path = output_path(&args, target.cross().ok_or(CargoBuildError::UnknownTarget)?);
 
     match path.exists() {
         true => {
@@ -74,7 +37,7 @@ pub fn build_local<'a>(args: CargoLocalBuildArgs<'a>) -> Result<CargoBuildOutput
                 target: target,
             })
         }
-        false => Err(CargoLocalBuildError::MissingOutput { path: path }),
+        false => Err(CargoBuildError::MissingOutput { path: path }),
     }
 }
 
@@ -103,7 +66,7 @@ fn cargo_commands(work_dir: &Path,
                   kinds: &[Action],
                   profile: Profile,
                   quiet: bool)
-                  -> Result<(), CargoLocalBuildError> {
+                  -> Result<(), CargoBuildError> {
     for kind in kinds {
         cargo_command(work_dir, *kind, profile, quiet)?;
     }
@@ -115,7 +78,7 @@ fn cargo_command(work_dir: &Path,
                  kind: Action,
                  profile: Profile,
                  quiet: bool)
-                 -> Result<(), CargoLocalBuildError> {
+                 -> Result<(), CargoBuildError> {
     let mut cargo = Command::new("cargo");
 
     cargo.current_dir(work_dir);
@@ -141,29 +104,7 @@ fn cargo_command(work_dir: &Path,
 
     match output.status.success() {
         true => Ok(()),
-        false => Err(CargoLocalBuildError::Run),
-    }
-}
-
-quick_error!{
-    /// An error encountered while parsing Cargo configuration.
-    #[derive(Debug)]
-    pub enum CargoLocalBuildError {
-        /// An io-related error reading from a file.
-        Io (err: IoError) {
-            cause(err)
-            display("Error running cargo build\nCaused by: {}", err)
-            from()
-        }
-        Run {
-            display("Error running cargo build\nBuild output (if any) should be written to stderr")
-        }
-        UnknownTarget {
-            display("Unknown build target\nThis probably means you're running on an unsupported platform")
-        }
-        MissingOutput { path: PathBuf } {
-            display("Build output was expected to be at {:?} but wasn't found", path)
-        }
+        false => Err(CargoBuildError::Run),
     }
 }
 
@@ -236,7 +177,7 @@ mod tests {
         let result = build_lib(args);
 
         match result {
-            Err(CargoLocalBuildError::MissingOutput { .. }) => (),
+            Err(CargoBuildError::MissingOutput { .. }) => (),
             r => panic!("{:?}", r),
         }
     }

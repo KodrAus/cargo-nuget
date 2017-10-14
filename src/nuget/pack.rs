@@ -11,30 +11,6 @@ use super::Buf;
 use super::util::{xml, openxml};
 use args::{Arch, Target, CrossTarget};
 
-impl Target {
-    fn rid(&self) -> Cow<'static, str> {
-        fn path(target: &'static str, arch: &'static str) -> Cow<'static, str> {
-            format!("{}-{}", target, arch).into()
-        }
-
-        match self.cross() {
-            Some(CrossTarget::Windows(arch)) => path("win", arch.rid()),
-            Some(CrossTarget::MacOS(arch)) => path("osx", arch.rid()),
-            Some(CrossTarget::Linux(arch)) => path("linux", arch.rid()),
-            _ => "any".into(),
-        }
-    }
-}
-
-impl Arch {
-    fn rid(&self) -> &'static str {
-        match *self {
-            Arch::x86 => "x86",
-            Arch::x64 => "x64",
-        }
-    }
-}
-
 /// Args for building a `nupkg` with potentially multiple targets.
 #[derive(Debug, PartialEq)]
 pub struct NugetPackArgs<'a> {
