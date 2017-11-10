@@ -164,5 +164,9 @@ quick_error!{
         MissingOutput { path: PathBuf } {
             display("Build output was expected to be at {:?} but wasn't found", path)
         }
+        /// An unsupported cross-platform build.
+        UnsupportedCrossBuild {
+            display("Cross platform builds aren't supported yet\nBuild the crate for different targets first, then pass the paths to each target")
+        }
     }
 }

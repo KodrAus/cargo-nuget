@@ -31,7 +31,7 @@ pub enum CargoCrossTarget<'a> {
 pub fn build_cross<'a>(args: CargoCrossBuildArgs<'a>) -> Result<Vec<CargoBuildOutput>, CargoBuildError> {
     args.targets.into_iter().map(|args| {
         match args {
-            CargoCrossTarget::Build { .. } => unimplemented!("cross platform builds aren't supported yet"),
+            CargoCrossTarget::Build { .. } => Err(CargoBuildError::UnsupportedCrossBuild),
             CargoCrossTarget::Path { target, path } => {
                 match path.exists() {
                     true => {
