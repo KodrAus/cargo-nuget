@@ -25,54 +25,62 @@ pub mod pack;
 pub mod cross;
 mod args;
 
+use std::error::Error;
 use std::process;
-use term_painter::ToStyle;
-use term_painter::Color::*;
+
+#[derive(Default)]
+struct BuildResult {
+    ran: bool,
+    err: Option<Box<Error>>,
+}
+
+fn get_command(args: &clap::ArgMatches) -> Option<Result<(), Box<Error>>> {
+    // Run pack command
+    let pack_cmd = || args.subcommand_matches(args::PACK_CMD).map(pack::call);
+
+    // Run cross command
+    let cross_cmd = || args.subcommand_matches(args::CROSS_CMD).map(cross::call);
+    
+    pack_cmd().or_else(cross_cmd)
+}
 
 fn main() {
     pretty_env_logger::init().unwrap();
 
     let args = args::app().get_matches();
 
-    // run pack command
-    if let Some(args) = args.subcommand_matches(args::PACK_CMD) {
-        match pack::call(args) {
-            Ok(_) => {
-                println!("{}", Green.paint("The build finished successfully"));
-                process::exit(0);
-            }
+    let mut result = BuildResult::default();
+
+    if let Some(cmd) = get_command(&args) {
+        result.ran = true;
+
+        match cmd {
             Err(e) => {
-                error!("{}", e);
-
-                // TODO: Write to stderr
-                println!("\n{}",
-                         Red.bold().paint("The build did not finish successfully"));
-
-                process::exit(1);
-            }
+                result.err = Some(e)
+            },
+            _ => ()
         }
     }
 
-    // run cross command
-    if let Some(args) = args.subcommand_matches(args::CROSS_CMD) {
-        match cross::call(args) {
-            Ok(_) => {
-                println!("{}", Green.paint("The build finished successfully"));
-                process::exit(0);
-            }
-            Err(e) => {
-                error!("{}", e);
+    match result {
+        BuildResult { ran: false, .. } => {
+            // print help and exit
+            args::app().print_help().unwrap();
+            println!("");
+        },
+        BuildResult { err: Some(e), .. } => {
+            // print error and exit
+            error!("{}", e);
 
-                // TODO: Write to stderr
-                println!("\n{}",
-                         Red.bold().paint("The build did not finish successfully"));
+            info!("The build did not finish successfully");
 
-                process::exit(1);
-            }
+            process::exit(1);
+        },
+        BuildResult { err: None, .. } => {
+            // print success and exit
+            info!("The build finished successfully");
+
+            process::exit(0);
         }
     }
-    
-    // print help and exit
-    args::app().print_help().unwrap();
-    println!("");
 }

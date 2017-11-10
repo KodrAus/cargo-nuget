@@ -1,10 +1,3 @@
-/*
-TODO: Support cross platform builds:
-
-- Source::Build() -> not supported error
-- Source::Path() -> check the path and create a new output from it
-*/
-
 use std::path::PathBuf;
 use std::borrow::Cow;
 use std::io::Error as IoError;
@@ -121,7 +114,7 @@ impl<'a> From<(&'a ArgMatches<'a>, &'a CargoConfig)> for CargoCrossBuildArgs<'a>
                 },
                 None => CargoCrossTarget::Build {
                     target: target,
-                    output_name: "nothing.dll".into()
+                    output_name: Cow::Borrowed(&cargo.name)
                 }
             }
         }).collect();

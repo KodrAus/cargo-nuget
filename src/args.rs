@@ -1,5 +1,4 @@
 use std::borrow::Cow;
-use std::path::PathBuf;
 
 use clap::{App, Arg, SubCommand};
 
@@ -114,27 +113,6 @@ pub fn app<'a, 'b>() -> App<'a, 'b> {
         .subcommand(SubCommand::with_name(CROSS_CMD)
             .about("Pack a Rust library as a Nuget package for cross-platform distribution")
             .args(&cross_args))
-}
-
-// TODO: Is this needed since we have a hard fork on local vs non-local builds?
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum Build {
-    Local {
-        source: Source,
-    },
-    Cross {
-        target: CrossTarget,
-        source: Source,
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum Source {
-    Build {
-        action: Action,
-        profile: Profile,
-    },
-    Path(PathBuf),
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]

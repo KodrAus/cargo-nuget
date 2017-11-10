@@ -9,7 +9,7 @@ use zip::result::ZipError;
 
 use super::Buf;
 use super::util::{xml, openxml};
-use args::{Arch, Target, CrossTarget};
+use args::Target;
 
 /// Args for building a `nupkg` with potentially multiple targets.
 #[derive(Debug, PartialEq)]
