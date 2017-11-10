@@ -27,6 +27,8 @@ pub fn save_nupkg<'a>(args: NugetSaveArgs<'a>) -> Result<NupkgPath<'a>, NugetSav
 
     f.write_all(&args.nupkg)?;
 
+    info!("nupkg written to: {:?}", args.path);
+
     Ok(NupkgPath { path: args.path })
 }
 

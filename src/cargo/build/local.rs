@@ -28,7 +28,7 @@ pub fn build_local<'a>(args: CargoLocalBuildArgs<'a>) -> Result<CargoBuildOutput
 
     cargo_commands(&args.work_dir, &cmds, args.profile, args.quiet)?;
 
-    let path = output_path(&args, target.cross().ok_or(CargoBuildError::UnknownTarget)?);
+    let path = output_path(&args, target.cross().ok_or(CargoBuildError::NoValidTargets)?);
 
     match path.exists() {
         true => {

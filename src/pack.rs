@@ -12,7 +12,6 @@ pub fn call(args: &ArgMatches) -> Result<(), Box<Error>> {
 
     let cargo_libs = pass!("building Rust lib" => (args, &cargo_toml) => |args| {
         let result = cargo::build_local(args);
-        println!("");
 
         result.map(|result| vec![result])
     });

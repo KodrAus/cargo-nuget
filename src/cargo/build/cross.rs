@@ -44,7 +44,14 @@ pub fn build_cross<'a>(args: CargoCrossBuildArgs<'a>) -> Result<Vec<CargoBuildOu
                 }
             }
         }
-    }).collect()
+    })
+    .collect::<Result<Vec<_>, CargoBuildError>>()
+    .and_then(|builds| {
+        match builds.len() {
+            0 => Err(CargoBuildError::NoValidTargets),
+            _ => Ok(builds)
+        }
+    })
 }
 
 #[cfg(test)]

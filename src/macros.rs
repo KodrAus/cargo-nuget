@@ -3,7 +3,7 @@ macro_rules! pass {
     ($line:expr => $args:expr => $pass:expr) => ({
         let args = $args.into();
 
-        info!("{}", $line);
+        info!("\n{}", $line);
 
         debug!("input: {:?}", args);
 

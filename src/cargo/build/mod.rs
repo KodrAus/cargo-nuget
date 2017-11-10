@@ -46,7 +46,13 @@ fn parse_targets<'a>(args: &'a ArgMatches<'a>) -> Vec<CrossTarget> {
         .map(Iterator::collect)
         .unwrap_or_else(Vec::new)
         .into_iter()
-        .filter_map(CrossTarget::from_rid)
+        .filter_map(|target| match CrossTarget::from_rid(target) {
+            Some(target) => Some(target),
+            None => {
+                warn!("'{}' could not be parsed to an rid", target);
+                None
+            }
+        })
         .collect()
 }
 
@@ -151,8 +157,8 @@ quick_error!{
             display("Error running cargo build\nBuild output (if any) should be written to stderr")
         }
         /// An error getting a concrete target to build for.
-        UnknownTarget {
-            display("Unknown build target\nThis probably means you're running on an unsupported platform")
+        NoValidTargets {
+            display("No valid platform targets were supplied\nThis probably means you're running on an unsupported platform\nOr didn't supply any targets to build")
         }
         /// An error attempting to find the build output.
         MissingOutput { path: PathBuf } {

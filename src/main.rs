@@ -12,7 +12,6 @@ extern crate semver;
 extern crate chrono;
 #[macro_use]
 extern crate log;
-extern crate pretty_env_logger;
 #[macro_use]
 extern crate lazy_static;
 
@@ -24,15 +23,10 @@ pub mod nuget;
 pub mod pack;
 pub mod cross;
 mod args;
+mod logger;
 
 use std::error::Error;
 use std::process;
-
-#[derive(Default)]
-struct BuildResult {
-    ran: bool,
-    err: Option<Box<Error>>,
-}
 
 fn get_command(args: &clap::ArgMatches) -> Option<Result<(), Box<Error>>> {
     // Run pack command
@@ -45,7 +39,7 @@ fn get_command(args: &clap::ArgMatches) -> Option<Result<(), Box<Error>>> {
 }
 
 fn main() {
-    pretty_env_logger::init().unwrap();
+    logger::init();
 
     let args = args::app().get_matches();
 
@@ -72,15 +66,21 @@ fn main() {
             // print error and exit
             error!("{}", e);
 
-            info!("The build did not finish successfully");
+            info!("\nThe build did not finish successfully");
 
             process::exit(1);
         },
         BuildResult { err: None, .. } => {
             // print success and exit
-            info!("The build finished successfully");
+            info!("\nThe build finished successfully");
 
             process::exit(0);
         }
     }
+}
+
+#[derive(Default)]
+struct BuildResult {
+    ran: bool,
+    err: Option<Box<Error>>,
 }
