@@ -1,6 +1,6 @@
 env:
   global:
-    - RUST_VERSION=1.15.1
+    - RUST_VERSION=1.18.0
     - DOTNET_SDK_VERSION=2.0.0
 
 matrix:
