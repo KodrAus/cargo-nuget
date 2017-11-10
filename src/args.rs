@@ -257,7 +257,7 @@ fn local_target() -> Option<CrossTarget> {
 }
 #[cfg(target_os = "macos")]
 fn local_target() -> Option<CrossTarget> {
-    local_arch().map(|arch| CrossTarget::MacOs(arch))
+    local_arch().map(|arch| CrossTarget::MacOS(arch))
 }
 #[cfg(target_os = "linux")]
 fn local_target() -> Option<CrossTarget> {
