@@ -27,7 +27,7 @@ impl CrossTarget {
     fn extension(&self) -> &'static str {
         match *self {
             CrossTarget::Windows(_) => "dll",
-            CrossTarget::Linux(_) => "dll",
+            CrossTarget::Linux(_) => "so",
             CrossTarget::MacOS(_) => "dylib",
         }
     }
