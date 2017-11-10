@@ -1,5 +1,5 @@
 use chrono::UTC;
-use semver::{Version, Identifier, SemVerError};
+use semver::{Identifier, SemVerError, Version};
 
 /// Args for adding a dev tag to a semver version.
 #[derive(Debug, PartialEq)]
@@ -13,8 +13,9 @@ pub struct CargoLocalVersion {
     pub version: String,
 }
 
-pub fn local_version_tag<'a>(ver: CargoLocalVersionArgs<'a>)
-                             -> Result<CargoLocalVersion, CargoLocalVersionError> {
+pub fn local_version_tag<'a>(
+    ver: CargoLocalVersionArgs<'a>,
+) -> Result<CargoLocalVersion, CargoLocalVersionError> {
     let mut ver = Version::parse(ver.version)?;
     let build = UTC::now().timestamp();
 
@@ -26,7 +27,9 @@ pub fn local_version_tag<'a>(ver: CargoLocalVersionArgs<'a>)
 
     add_pretag(&mut ver, "dev", build);
 
-    Ok(CargoLocalVersion { version: ver.to_string() })
+    Ok(CargoLocalVersion {
+        version: ver.to_string(),
+    })
 }
 
 fn add_pretag(ver: &mut Version, tag: &str, num: u64) {

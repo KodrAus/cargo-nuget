@@ -1,72 +1,84 @@
-#![deny(warnings)]
+// #![deny(warnings)]
 
-#[macro_use]
-extern crate quick_error;
+extern crate chrono;
 #[macro_use]
 extern crate clap;
+#[macro_use]
+extern crate lazy_static;
+#[macro_use]
+extern crate log;
+#[macro_use]
+extern crate quick_error;
+extern crate semver;
 extern crate term_painter;
+extern crate toml;
 extern crate xml;
 extern crate zip;
-extern crate toml;
-extern crate semver;
-extern crate chrono;
 
 #[macro_use]
 mod macros;
 
 pub mod cargo;
 pub mod nuget;
+pub mod pack;
+pub mod cross;
 mod args;
+mod logger;
 
 use std::error::Error;
+use std::process;
 
-use term_painter::ToStyle;
-use term_painter::Color::*;
+fn get_command(args: &clap::ArgMatches) -> Option<Result<(), Box<Error>>> {
+    // Run pack command
+    let pack_cmd = || args.subcommand_matches(args::PACK_CMD).map(pack::call);
 
-use clap::ArgMatches;
+    // Run cross command
+    let cross_cmd = || args.subcommand_matches(args::CROSS_CMD).map(cross::call);
+
+    pack_cmd().or_else(cross_cmd)
+}
 
 fn main() {
+    logger::init();
+
     let args = args::app().get_matches();
 
-    // run pack command
-    if let Some(args) = args.subcommand_matches(args::PACK_CMD) {
-        match pack(args) {
-            Ok(_) => {
-                println!("{}", Green.paint("The build finished successfully"));
-            }
-            Err(e) => {
-                println!("{}", Red.paint(e));
-                println!("\n{}",
-                         Red.bold().paint("The build did not finish successfully"));
-            }
+    let mut result = BuildResult::default();
+
+    if let Some(cmd) = get_command(&args) {
+        result.ran = true;
+
+        match cmd {
+            Err(e) => result.err = Some(e),
+            _ => (),
         }
     }
-    // print help and exit
-    else {
-        args::app().print_help().unwrap();
-        println!("");
+
+    match result {
+        BuildResult { ran: false, .. } => {
+            // print help and exit
+            args::app().print_help().unwrap();
+            println!("");
+        }
+        BuildResult { err: Some(e), .. } => {
+            // print error and exit
+            error!("{}", e);
+
+            info!("\nThe build did not finish successfully");
+
+            process::exit(1);
+        }
+        BuildResult { err: None, .. } => {
+            // print success and exit
+            info!("\nThe build finished successfully");
+
+            process::exit(0);
+        }
     }
 }
 
-fn pack(args: &ArgMatches) -> Result<(), Box<Error>> {
-    let mut cargo_toml = pass!("reading cargo manifest" => args => cargo::parse_toml);
-
-    let local = pass!("adding local version tag" => &cargo_toml => cargo::local_version_tag);
-
-    cargo_toml.version = local.version;
-
-    let cargo_lib = pass!("building Rust lib" => (args, &cargo_toml) => |args| {
-        let result = cargo::build_lib(args);
-        println!("");
-
-        result
-    });
-
-    let nuspec = pass!("building nuspec" => &cargo_toml => nuget::spec);
-
-    let nupkg = pass!("building nupkg" => (&nuspec, &cargo_lib) => nuget::pack);
-
-    pass!("saving nupkg" => (args, &nupkg) => nuget::save_nupkg);
-
-    Ok(())
+#[derive(Default)]
+struct BuildResult {
+    ran: bool,
+    err: Option<Box<Error>>,
 }

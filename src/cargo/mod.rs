@@ -8,11 +8,10 @@ pub use self::build::*;
 pub use self::parse::*;
 pub use self::version::*;
 
-use std::borrow::Cow;
 use std::path::PathBuf;
 use clap::ArgMatches;
 
-use args::{CARGO_BUILD_QUIET, CARGO_WORK_DIR_ARG, TEST_ARG, RELEASE_ARG};
+use args::CARGO_WORK_DIR_ARG;
 
 /// Build args to parse toml from program input.
 impl<'a> From<&'a ArgMatches<'a>> for CargoParseArgs<'a> {
@@ -24,33 +23,13 @@ impl<'a> From<&'a ArgMatches<'a>> for CargoParseArgs<'a> {
                 path.push("Cargo");
                 path.set_extension("toml");
 
-                path.to_string_lossy()
-                    .into_owned()
-                    .into()
+                path.to_string_lossy().into_owned().into()
             }
             None => "Cargo.toml".into(),
         };
 
-        CargoParseArgs { buf: CargoBufKind::FromFile { path: path } }
-    }
-}
-
-/// Get the build kind from program input.
-impl<'a> From<&'a ArgMatches<'a>> for CargoBuildKind {
-    fn from(args: &'a ArgMatches<'a>) -> Self {
-        match args.is_present(TEST_ARG) {
-            true => CargoBuildKind::Test,
-            _ => CargoBuildKind::Build,
-        }
-    }
-}
-
-/// Get the build profile from metadata.
-impl<'a> From<&'a ArgMatches<'a>> for CargoBuildProfile {
-    fn from(args: &'a ArgMatches<'a>) -> Self {
-        match args.is_present(RELEASE_ARG) {
-            true => CargoBuildProfile::Release,
-            _ => CargoBuildProfile::Debug,
+        CargoParseArgs {
+            buf: CargoBufKind::FromFile { path: path },
         }
     }
 }
@@ -58,27 +37,8 @@ impl<'a> From<&'a ArgMatches<'a>> for CargoBuildProfile {
 /// Build args to add a dev tag from toml config.
 impl<'a> From<&'a CargoConfig> for CargoLocalVersionArgs<'a> {
     fn from(cargo: &'a CargoConfig) -> Self {
-        CargoLocalVersionArgs { version: &cargo.version }
-    }
-}
-
-/// Build args to run a cargo command from program input and toml config.
-impl<'a> From<(&'a ArgMatches<'a>, &'a CargoConfig)> for CargoBuildArgs<'a> {
-    fn from((args, cargo): (&'a ArgMatches<'a>, &'a CargoConfig)) -> Self {
-        let path = match args.value_of(CARGO_WORK_DIR_ARG) {
-            Some(path) => path.into(),
-            None => PathBuf::from("."),
-        };
-
-        let quiet = args.is_present(CARGO_BUILD_QUIET);
-
-        CargoBuildArgs {
-            work_dir: path.into(),
-            output_name: Cow::Borrowed(&cargo.name),
-            kind: args.into(),
-            target: CargoBuildTarget::Local,
-            profile: args.into(),
-            quiet: quiet,
+        CargoLocalVersionArgs {
+            version: &cargo.version,
         }
     }
 }

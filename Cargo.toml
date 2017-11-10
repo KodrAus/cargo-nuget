@@ -15,3 +15,5 @@ xml-rs = "~0.3"
 zip = "~0.2"
 chrono = "~0.3"
 semver = "~0.6"
+log = { git = "https://github.com/rust-lang-nursery/log.git", features = ["std"] }
+lazy_static = "*"
