@@ -4,8 +4,8 @@ use std::borrow::Cow;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
-use super::{CargoBuildOutput, CargoBuildError};
-use args::{Action, Profile, Target, CrossTarget};
+use super::{CargoBuildError, CargoBuildOutput};
+use args::{Action, CrossTarget, Profile, Target};
 
 /// Args for running a `cargo` command for the native package.
 #[derive(Debug, Clone, PartialEq)]
@@ -28,15 +28,16 @@ pub fn build_local<'a>(args: CargoLocalBuildArgs<'a>) -> Result<CargoBuildOutput
 
     cargo_commands(&args.work_dir, &cmds, args.profile, args.quiet)?;
 
-    let path = output_path(&args, target.cross().ok_or(CargoBuildError::NoValidTargets)?);
+    let path = output_path(
+        &args,
+        target.cross().ok_or(CargoBuildError::NoValidTargets)?,
+    );
 
     match path.exists() {
-        true => {
-            Ok(CargoBuildOutput {
-                path: path,
-                target: target,
-            })
-        }
+        true => Ok(CargoBuildOutput {
+            path: path,
+            target: target,
+        }),
         false => Err(CargoBuildError::MissingOutput { path: path }),
     }
 }
@@ -62,11 +63,12 @@ fn output_path<'a>(args: &CargoLocalBuildArgs<'a>, target: CrossTarget) -> PathB
     output
 }
 
-fn cargo_commands(work_dir: &Path,
-                  kinds: &[Action],
-                  profile: Profile,
-                  quiet: bool)
-                  -> Result<(), CargoBuildError> {
+fn cargo_commands(
+    work_dir: &Path,
+    kinds: &[Action],
+    profile: Profile,
+    quiet: bool,
+) -> Result<(), CargoBuildError> {
     for kind in kinds {
         cargo_command(work_dir, *kind, profile, quiet)?;
     }
@@ -74,11 +76,12 @@ fn cargo_commands(work_dir: &Path,
     Ok(())
 }
 
-fn cargo_command(work_dir: &Path,
-                 kind: Action,
-                 profile: Profile,
-                 quiet: bool)
-                 -> Result<(), CargoBuildError> {
+fn cargo_command(
+    work_dir: &Path,
+    kind: Action,
+    profile: Profile,
+    quiet: bool,
+) -> Result<(), CargoBuildError> {
     let mut cargo = Command::new("cargo");
 
     cargo.current_dir(work_dir);
@@ -119,62 +122,58 @@ mod tests {
         CargoLocalBuildArgs {
             work_dir: p.into(),
             output_name: "native_test".into(),
-            kind: Action::Build,
-            target: Target::Local,
+            action: Action::Build,
             profile: Profile::Debug,
             quiet: true,
         }
     }
 
     #[test]
-    fn local_target_extension() {
-        assert_eq!(LOCAL_EXTENSION, Target::Local.extension());
-        assert_eq!(LOCAL_EXTENSION, Target::Cross(CrossTarget::local()).extension());
-    }
-
-    #[test]
-    fn local_target_prefix() {
-        assert_eq!(LOCAL_PREFIX, Target::Local.prefix());
-        assert_eq!(LOCAL_PREFIX, Target::Cross(CrossTarget::local()).prefix());
-    }
-
-    #[test]
     fn cargo_build_debug() {
         let args = local_args();
 
-        build_lib(args).unwrap();
+        build_local(args).unwrap();
     }
 
     #[test]
     fn cargo_build_release() {
-        let args = CargoLocalBuildArgs { profile: Profile::Release, ..local_args() };
+        let args = CargoLocalBuildArgs {
+            profile: Profile::Release,
+            ..local_args()
+        };
 
-        build_lib(args).unwrap();
+        build_local(args).unwrap();
     }
 
     #[test]
     fn cargo_test_debug() {
-        let args = CargoLocalBuildArgs { kind: Action::Test, ..local_args() };
+        let args = CargoLocalBuildArgs {
+            action: Action::Test,
+            ..local_args()
+        };
 
-        build_lib(args).unwrap();
+        build_local(args).unwrap();
     }
 
     #[test]
     fn cargo_test_release() {
         let args = CargoLocalBuildArgs {
-            kind: Action::Test,
+            action: Action::Test,
             profile: Profile::Release,
             ..local_args()
         };
 
-        build_lib(args).unwrap();
+        build_local(args).unwrap();
     }
 
     #[test]
     fn cargo_build_missing_output() {
-        let args = CargoLocalBuildArgs { output_name: "not_the_output".into(), ..local_args() };
+        let args = CargoLocalBuildArgs {
+            output_name: "not_the_output".into(),
+            ..local_args()
+        };
 
-        let result = build_lib(args);
+        let result = build_local(args);
 
         match result {
             Err(CargoBuildError::MissingOutput { .. }) => (),

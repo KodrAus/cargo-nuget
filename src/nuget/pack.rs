@@ -1,14 +1,14 @@
-use std::io::{copy, Cursor, Write, Seek, Error as IoError};
+use std::io::{copy, Cursor, Error as IoError, Seek, Write};
 use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::borrow::Cow;
 use std::collections::HashMap;
 use zip::CompressionMethod;
-use zip::write::{ZipWriter, FileOptions};
+use zip::write::{FileOptions, ZipWriter};
 use zip::result::ZipError;
 
 use super::Buf;
-use super::util::{xml, openxml};
+use super::util::{openxml, xml};
 use args::Target;
 
 /// Args for building a `nupkg` with potentially multiple targets.
@@ -39,8 +39,7 @@ pub fn pack<'a>(args: NugetPackArgs<'a>) -> Result<Nupkg, NugetPackError> {
         .filter_map(|(target, path)| {
             if target.is_unknown() {
                 None
-            }
-            else {
+            } else {
                 Some((target.rid(), path))
             }
         })
@@ -68,12 +67,12 @@ pub fn pack<'a>(args: NugetPackArgs<'a>) -> Result<Nupkg, NugetPackError> {
 
     for &(ref rid, ref lib_path) in &pkgs {
         write_lib(&mut writer, &args.id, rid, lib_path).map_err(|e| {
-                NugetPackError::WriteLib {
-                    rid: rid.to_string(),
-                    lib_path: lib_path.to_string_lossy().into_owned(),
-                    err: e,
-                }
-            })?;
+            NugetPackError::WriteLib {
+                rid: rid.to_string(),
+                lib_path: lib_path.to_string_lossy().into_owned(),
+                err: e,
+            }
+        })?;
     }
 
     let buf = writer.finish()?.into_inner();
@@ -89,12 +88,14 @@ pub fn pack<'a>(args: NugetPackArgs<'a>) -> Result<Nupkg, NugetPackError> {
 }
 
 /// Write `/runtimes/{rid}/native/{lib}`.
-fn write_lib<W>(writer: &mut ZipWriter<W>,
-                id: &str,
-                rid: &str,
-                lib_path: &Path)
-                -> Result<(), NugetWriteLibError>
-    where W: Write + Seek
+fn write_lib<W>(
+    writer: &mut ZipWriter<W>,
+    id: &str,
+    rid: &str,
+    lib_path: &Path,
+) -> Result<(), NugetWriteLibError>
+where
+    W: Write + Seek,
 {
     let mut path = PathBuf::new();
     path.push("runtimes");
@@ -116,7 +117,8 @@ fn write_lib<W>(writer: &mut ZipWriter<W>,
 
 /// Write `/_rels/.rels`.
 fn write_rels<W>(writer: &mut ZipWriter<W>, nuspec_path: &Path) -> Result<(), NugetPackError>
-    where W: Write + Seek
+where
+    W: Write + Seek,
 {
     let (path, xml) = openxml::relationships(&nuspec_path)?;
 
@@ -128,7 +130,8 @@ fn write_rels<W>(writer: &mut ZipWriter<W>, nuspec_path: &Path) -> Result<(), Nu
 
 /// Write `/[Content_Types].xml`.
 fn write_content_types<W>(writer: &mut ZipWriter<W>) -> Result<(), NugetPackError>
-    where W: Write + Seek
+where
+    W: Write + Seek,
 {
     let (path, xml) = openxml::content_types()?;
 

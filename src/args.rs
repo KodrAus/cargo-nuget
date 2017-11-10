@@ -66,7 +66,8 @@ pub fn app<'a, 'b>() -> App<'a, 'b> {
         Arg::with_name(NUPKG_DIR_ARG)
             .long(NUPKG_DIR_ARG)
             .takes_value(true)
-            .help("path to save the nupkg")];
+            .help("path to save the nupkg"),
+    ];
 
     let path_args = TARGET_PATHS.iter().map(|arg| {
         Arg::with_name(&arg.name)
@@ -101,18 +102,23 @@ pub fn app<'a, 'b>() -> App<'a, 'b> {
         Arg::with_name(NUPKG_DIR_ARG)
             .long(NUPKG_DIR_ARG)
             .takes_value(true)
-            .help("path to save the nupkg")];
-    
+            .help("path to save the nupkg"),
+    ];
+
     cross_args.extend(path_args);
-    
+
     App::new("cargo-nuget")
         .version(crate_version!())
-        .subcommand(SubCommand::with_name(PACK_CMD)
-            .about("Pack a Rust library as a Nuget package for local development")
-            .args(&local_args))
-        .subcommand(SubCommand::with_name(CROSS_CMD)
-            .about("Pack a Rust library as a Nuget package for cross-platform distribution")
-            .args(&cross_args))
+        .subcommand(
+            SubCommand::with_name(PACK_CMD)
+                .about("Pack a Rust library as a Nuget package for local development")
+                .args(&local_args),
+        )
+        .subcommand(
+            SubCommand::with_name(CROSS_CMD)
+                .about("Pack a Rust library as a Nuget package for cross-platform distribution")
+                .args(&cross_args),
+        )
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
@@ -187,16 +193,14 @@ impl CrossTarget {
 
         let platform = parts.next();
         let arch = parts.next().and_then(Arch::from_rid);
-        
+
         platform
             .and_then(|platform| arch.map(|arch| (platform, arch)))
-            .and_then(|(platform, arch)| {
-                match platform {
-                    "win" => Some(CrossTarget::Windows(arch)),
-                    "osx" => Some(CrossTarget::MacOS(arch)),
-                    "linux" => Some(CrossTarget::Linux(arch)),
-                    _ => None,
-                }
+            .and_then(|(platform, arch)| match platform {
+                "win" => Some(CrossTarget::Windows(arch)),
+                "osx" => Some(CrossTarget::MacOS(arch)),
+                "linux" => Some(CrossTarget::Linux(arch)),
+                _ => None,
             })
     }
 }
@@ -224,7 +228,7 @@ impl Arch {
         match rid {
             "x86" => Some(Arch::x86),
             "x64" => Some(Arch::x64),
-            _ => None
+            _ => None,
         }
     }
 }
@@ -234,12 +238,18 @@ fn rid(target: &'static str, arch: &'static str) -> Cow<'static, str> {
 }
 
 #[cfg(target_arch = "x86")]
-fn local_arch() -> Option<Arch> { Some(Arch::x86) }
+fn local_arch() -> Option<Arch> {
+    Some(Arch::x86)
+}
 #[cfg(target_arch = "x86_64")]
-fn local_arch() -> Option<Arch> { Some(Arch::x64) }
+fn local_arch() -> Option<Arch> {
+    Some(Arch::x64)
+}
 
 #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
-fn local_arch() -> Option<Arch> { None }
+fn local_arch() -> Option<Arch> {
+    None
+}
 
 #[cfg(windows)]
 fn local_target() -> Option<CrossTarget> {
@@ -265,36 +275,68 @@ mod tests {
 
     #[test]
     fn unknown_rid() {
-        unimplemented!("malformed rid")
+        let target = Target::from_rid("mcnuggets");
+
+        assert_eq!(Target::Unknown, target);
     }
 
     #[test]
     fn windows_x86_rid() {
-        unimplemented!("round trip to and from rid")
+        let rid = "win-x86";
+
+        let target = Target::from_rid(rid);
+
+        assert_eq!(Target::Cross(CrossTarget::Windows(Arch::x86)), target);
+        assert_eq!(rid, target.rid());
     }
 
     #[test]
     fn windows_x64_rid() {
-        unimplemented!("round trip to and from rid")
+        let rid = "win-x64";
+
+        let target = Target::from_rid(rid);
+
+        assert_eq!(Target::Cross(CrossTarget::Windows(Arch::x64)), target);
+        assert_eq!(rid, target.rid());
     }
 
     #[test]
     fn osx_x86_rid() {
-        unimplemented!("round trip to and from rid")
+        let rid = "osx-x86";
+
+        let target = Target::from_rid(rid);
+
+        assert_eq!(Target::Cross(CrossTarget::MacOS(Arch::x86)), target);
+        assert_eq!(rid, target.rid());
     }
 
     #[test]
     fn osx_x64_rid() {
-        unimplemented!("round trip to and from rid")
+        let rid = "osx-x64";
+
+        let target = Target::from_rid(rid);
+
+        assert_eq!(Target::Cross(CrossTarget::MacOS(Arch::x64)), target);
+        assert_eq!(rid, target.rid());
     }
 
     #[test]
     fn linux_x86_rid() {
-        unimplemented!("round trip to and from rid")
+        let rid = "linux-x86";
+
+        let target = Target::from_rid(rid);
+
+        assert_eq!(Target::Cross(CrossTarget::Linux(Arch::x86)), target);
+        assert_eq!(rid, target.rid());
     }
 
     #[test]
     fn linux_x64_rid() {
-        unimplemented!("round trip to and from rid")
+        let rid = "linux-x64";
+
+        let target = Target::from_rid(rid);
+
+        assert_eq!(Target::Cross(CrossTarget::Linux(Arch::x64)), target);
+        assert_eq!(rid, target.rid());
     }
 }

@@ -1,19 +1,19 @@
 // #![deny(warnings)]
 
-#[macro_use]
-extern crate quick_error;
+extern crate chrono;
 #[macro_use]
 extern crate clap;
-extern crate term_painter;
-extern crate xml;
-extern crate zip;
-extern crate toml;
-extern crate semver;
-extern crate chrono;
+#[macro_use]
+extern crate lazy_static;
 #[macro_use]
 extern crate log;
 #[macro_use]
-extern crate lazy_static;
+extern crate quick_error;
+extern crate semver;
+extern crate term_painter;
+extern crate toml;
+extern crate xml;
+extern crate zip;
 
 #[macro_use]
 mod macros;
@@ -34,7 +34,7 @@ fn get_command(args: &clap::ArgMatches) -> Option<Result<(), Box<Error>>> {
 
     // Run cross command
     let cross_cmd = || args.subcommand_matches(args::CROSS_CMD).map(cross::call);
-    
+
     pack_cmd().or_else(cross_cmd)
 }
 
@@ -49,10 +49,8 @@ fn main() {
         result.ran = true;
 
         match cmd {
-            Err(e) => {
-                result.err = Some(e)
-            },
-            _ => ()
+            Err(e) => result.err = Some(e),
+            _ => (),
         }
     }
 
@@ -61,7 +59,7 @@ fn main() {
             // print help and exit
             args::app().print_help().unwrap();
             println!("");
-        },
+        }
         BuildResult { err: Some(e), .. } => {
             // print error and exit
             error!("{}", e);
@@ -69,7 +67,7 @@ fn main() {
             info!("\nThe build did not finish successfully");
 
             process::exit(1);
-        },
+        }
         BuildResult { err: None, .. } => {
             // print success and exit
             info!("\nThe build finished successfully");

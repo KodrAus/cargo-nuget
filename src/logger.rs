@@ -1,5 +1,5 @@
-use std::io::{Write, stderr};
-use log::{self, Log, Record, Level, LevelFilter, Metadata};
+use std::io::{stderr, Write};
+use log::{self, Level, LevelFilter, Log, Metadata, Record};
 use term_painter::ToStyle;
 use term_painter::Color::*;
 
@@ -9,15 +9,28 @@ impl Log for Logger {
     fn log(&self, record: &Record) {
         match record.level() {
             Level::Error => {
-                let _ = writeln!(stderr(), "{}{}", Red.bold().paint("error: "), Red.paint(record.args()));
-            },
+                let _ = writeln!(
+                    stderr(),
+                    "{}{}",
+                    Red.bold().paint("error: "),
+                    Red.paint(record.args())
+                );
+            }
             Level::Warn => {
-                println!("{}{}", Yellow.bold().paint("warn: "), Yellow.paint(record.args()));
-            },
+                println!(
+                    "{}{}",
+                    Yellow.bold().paint("warn: "),
+                    Yellow.paint(record.args())
+                );
+            }
             Level::Debug => {
-                println!("{}{}", Blue.bold().paint("debug: "), Blue.paint(record.args()));
-            },
-            _ => println!("{}", record.args())
+                println!(
+                    "{}{}",
+                    Blue.bold().paint("debug: "),
+                    Blue.paint(record.args())
+                );
+            }
+            _ => println!("{}", record.args()),
         }
     }
 
@@ -25,9 +38,7 @@ impl Log for Logger {
         true
     }
 
-    fn flush(&self) {
-
-    }
+    fn flush(&self) {}
 }
 
 pub fn init() {

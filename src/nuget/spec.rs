@@ -22,10 +22,12 @@ pub struct NugetDependencies<'a>(Vec<NugetDependency<'a>>);
 /// which is needed to resolve the right native binary at runtime.
 impl<'a> Default for NugetDependencies<'a> {
     fn default() -> Self {
-        NugetDependencies(vec![NugetDependency {
-                                   id: "Microsoft.NETCore.Platforms".into(),
-                                   version: "[1.0.1, )".into(),
-                               }])
+        NugetDependencies(vec![
+            NugetDependency {
+                id: "Microsoft.NETCore.Platforms".into(),
+                version: "[1.0.1, )".into(),
+            },
+        ])
     }
 }
 
@@ -59,8 +61,10 @@ pub struct Nuspec<'a> {
 pub fn spec<'a>(args: NugetSpecArgs<'a>) -> Result<Nuspec<'a>, NugetSpecError> {
     let mut writer = xml::writer()?;
 
-    let pkg_attr = xml::attr("xmlns",
-                             "http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd");
+    let pkg_attr = xml::attr(
+        "xmlns",
+        "http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd",
+    );
 
     xml::elem(&mut writer, "package", &[pkg_attr], |ref mut writer| {
         xml::elem(writer, "metadata", &[], |ref mut writer| {
@@ -85,9 +89,10 @@ fn format_meta<'a>(args: &NugetSpecArgs<'a>, writer: &mut xml::Writer) -> Result
 }
 
 /// Write package dependencies.
-fn format_dependencies<'a>(dependencies: &[NugetDependency<'a>],
-                           writer: &mut xml::Writer)
-                           -> Result<(), xml::Error> {
+fn format_dependencies<'a>(
+    dependencies: &[NugetDependency<'a>],
+    writer: &mut xml::Writer,
+) -> Result<(), xml::Error> {
     xml::elem(writer, "dependencies", &[], |ref mut writer| {
         for dependency in dependencies {
             let id_attr = xml::attr("id", &dependency.id);
@@ -129,15 +134,17 @@ mod tests {
             version: "0.1.0".into(),
             authors: "Someone".into(),
             description: "A description for this package".into(),
-            dependencies: NugetDependencies(vec![NugetDependency {
-                                                     id: "A".into(),
-                                                     version: "1.0.0".into(),
-                                                 },
-                                                 // release notes for RC 11: rewrite from scratch
-                                                 NugetDependency {
-                                                     id: "B".into(),
-                                                     version: "1.0.0-rc11".into(),
-                                                 }]),
+            dependencies: NugetDependencies(vec![
+                NugetDependency {
+                    id: "A".into(),
+                    version: "1.0.0".into(),
+                },
+                // release notes for RC 11: rewrite from scratch
+                NugetDependency {
+                    id: "B".into(),
+                    version: "1.0.0-rc11".into(),
+                },
+            ]),
         };
 
         let nuspec = spec(args).unwrap();

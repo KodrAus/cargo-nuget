@@ -11,13 +11,13 @@ pub use self::pack::*;
 pub use self::save::*;
 
 use std::path::PathBuf;
-use std::fmt::{Debug, Formatter, Error as FmtError};
+use std::fmt::{Debug, Error as FmtError, Formatter};
 use std::collections::HashMap;
 use std::borrow::Cow;
 use std::ops::Deref;
 use clap::ArgMatches;
 
-use cargo::{CargoConfig, CargoBuildOutput};
+use cargo::{CargoBuildOutput, CargoConfig};
 use args::NUPKG_DIR_ARG;
 
 /// A wrapper around an owned byte buffer.
@@ -62,7 +62,8 @@ impl<'a> From<&'a CargoConfig> for NugetSpecArgs<'a> {
 
 /// Build args to pack a nupkg from nuspec and cargo build.
 impl<'a, I> From<(&'a Nuspec<'a>, I)> for NugetPackArgs<'a>
-    where I: IntoIterator<Item = &'a CargoBuildOutput>,
+where
+    I: IntoIterator<Item = &'a CargoBuildOutput>,
 {
     fn from((nuspec, builds): (&'a Nuspec, I)) -> Self {
         let mut libs = HashMap::new();

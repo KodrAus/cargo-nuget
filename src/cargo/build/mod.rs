@@ -2,7 +2,8 @@ use std::path::PathBuf;
 use std::borrow::Cow;
 use std::io::Error as IoError;
 use clap::ArgMatches;
-use args::{CARGO_BUILD_QUIET_ARG, CARGO_WORK_DIR_ARG, TEST_ARG, RELEASE_ARG, TARGETS_ARG, target_path_arg, Action, Profile, Target, CrossTarget};
+use args::{target_path_arg, Action, CrossTarget, Profile, Target, CARGO_BUILD_QUIET_ARG,
+           CARGO_WORK_DIR_ARG, RELEASE_ARG, TARGETS_ARG, TEST_ARG};
 use super::CargoConfig;
 
 mod local;
@@ -112,23 +113,24 @@ impl<'a> From<(&'a ArgMatches<'a>, &'a CargoConfig)> for CargoCrossBuildArgs<'a>
 
         let quiet = args.is_present(CARGO_BUILD_QUIET_ARG);
 
-        let targets = parse_targets(args).into_iter().map(|target| {
-            match target_path(args, target) {
-                Some(path) => CargoCrossTarget::Path {
-                    target: target,
-                    path: path.into(),
-                },
-                None => CargoCrossTarget::Build {
-                    target: target,
-                    output_name: Cow::Borrowed(&cargo.name)
-                }
-            }
-        }).collect();
+        let targets = parse_targets(args)
+            .into_iter()
+            .map(|target| {
+                let cross = match target_path(args, target) {
+                    Some(path) => CargoCrossTarget::Path(path.into()),
+                    None => CargoCrossTarget::Build {
+                        action: action,
+                        profile: profile,
+                        output_name: Cow::Borrowed(&cargo.name),
+                    },
+                };
+
+                (target, cross)
+            })
+            .collect();
 
         CargoCrossBuildArgs {
             work_dir: path.into(),
-            action: action,
-            profile: profile,
             quiet: quiet,
             targets: targets,
         }

@@ -23,20 +23,22 @@ impl<'a> From<&'a ArgMatches<'a>> for CargoParseArgs<'a> {
                 path.push("Cargo");
                 path.set_extension("toml");
 
-                path.to_string_lossy()
-                    .into_owned()
-                    .into()
+                path.to_string_lossy().into_owned().into()
             }
             None => "Cargo.toml".into(),
         };
 
-        CargoParseArgs { buf: CargoBufKind::FromFile { path: path } }
+        CargoParseArgs {
+            buf: CargoBufKind::FromFile { path: path },
+        }
     }
 }
 
 /// Build args to add a dev tag from toml config.
 impl<'a> From<&'a CargoConfig> for CargoLocalVersionArgs<'a> {
     fn from(cargo: &'a CargoConfig) -> Self {
-        CargoLocalVersionArgs { version: &cargo.version }
+        CargoLocalVersionArgs {
+            version: &cargo.version,
+        }
     }
 }

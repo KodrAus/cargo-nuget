@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 use std::path::Path;
-use std::io::{Write, Error as IoError};
+use std::io::{Error as IoError, Write};
 use std::fs::OpenOptions;
 
 use super::Buf;
@@ -20,7 +20,8 @@ pub struct NupkgPath<'a> {
 
 /// Format the input as a `nuspec` xml buffer.
 pub fn save_nupkg<'a>(args: NugetSaveArgs<'a>) -> Result<NupkgPath<'a>, NugetSaveError> {
-    let mut f = OpenOptions::new().write(true)
+    let mut f = OpenOptions::new()
+        .write(true)
         .truncate(true)
         .create(true)
         .open(&args.path)?;
@@ -33,13 +34,13 @@ pub fn save_nupkg<'a>(args: NugetSaveArgs<'a>) -> Result<NupkgPath<'a>, NugetSav
 }
 
 quick_error!{
-	#[derive(Debug)]
-	pub enum NugetSaveError {
-		/// An io-related error writing to a file.
+    #[derive(Debug)]
+    pub enum NugetSaveError {
+        /// An io-related error writing to a file.
         Io (err: IoError) {
             cause(err)
             display("Error saving nupkg\nCaused by: {}", err)
             from()
         }
-	}
+    }
 }

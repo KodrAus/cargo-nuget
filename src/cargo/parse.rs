@@ -1,6 +1,6 @@
 use std::str::{self, Utf8Error};
 use std::collections::BTreeMap;
-use std::io::{Read, Error as IoError};
+use std::io::{Error as IoError, Read};
 use std::borrow::Cow;
 use std::fs::File;
 use toml::{Parser, ParserError, Value};
@@ -41,7 +41,9 @@ pub fn parse_toml<'a>(args: CargoParseArgs<'a>) -> Result<CargoConfig, CargoPars
     let utf8 = str::from_utf8(&buf)?;
     let mut parser = Parser::new(utf8);
 
-    let toml = parser.parse().ok_or(CargoParseError::Toml { errs: parser.errors })?;
+    let toml = parser.parse().ok_or(CargoParseError::Toml {
+        errs: parser.errors,
+    })?;
 
     let is_dylib = is_dylib(&toml).unwrap_or(false);
 
@@ -60,8 +62,7 @@ fn parse_config_from_toml(toml: &BTreeMap<String, Value>) -> Result<CargoConfig,
     let name = toml_val!(pkg["name"].as_str())?.to_owned();
     let ver = toml_val!(pkg["version"].as_str())?.to_owned();
     let desc = toml_val!(pkg["description"].as_str())?.to_owned();
-    let authors = toml_val!(pkg["authors"].as_slice())
-        ?
+    let authors = toml_val!(pkg["authors"].as_slice())?
         .iter()
         .filter_map(|a| a.as_str())
         .map(|a| a.to_owned())
@@ -82,19 +83,18 @@ fn get_buf<'a>(buf: CargoBufKind<'a>) -> Result<Cow<'a, [u8]>, CargoParseError> 
         CargoBufKind::FromFile { path } => {
             let mut buf = Vec::new();
             let mut f = File::open(path.as_ref()).map_err(|e| {
-                    CargoParseError::Io {
-                        src: path.to_string(),
-                        err: e,
-                    }
-                })?;
+                CargoParseError::Io {
+                    src: path.to_string(),
+                    err: e,
+                }
+            })?;
 
-            f.read_to_end(&mut buf)
-                .map_err(|e| {
-                    CargoParseError::Io {
-                        src: path.to_string(),
-                        err: e,
-                    }
-                })?;
+            f.read_to_end(&mut buf).map_err(|e| {
+                CargoParseError::Io {
+                    src: path.to_string(),
+                    err: e,
+                }
+            })?;
 
             Ok(Cow::Owned(buf))
         }
@@ -107,8 +107,7 @@ fn get_buf<'a>(buf: CargoBufKind<'a>) -> Result<Cow<'a, [u8]>, CargoParseError> 
 fn is_dylib(toml: &BTreeMap<String, Value>) -> Result<bool, CargoParseError> {
     let lib = toml_val!(toml["lib"].as_table())?;
 
-    let is_dylib = toml_val!(lib["crate-type"].as_slice())
-        ?
+    let is_dylib = toml_val!(lib["crate-type"].as_slice())?
         .iter()
         .filter_map(|t| t.as_str())
         .any(|t| t == "dylib" || t == "cdylib");
@@ -177,7 +176,11 @@ mod tests {
             crate-type = ["rlib", "dylib"]
         "#;
 
-        let args = CargoParseArgs { buf: CargoBufKind::FromBuf { buf: toml.as_bytes().into() } };
+        let args = CargoParseArgs {
+            buf: CargoBufKind::FromBuf {
+                buf: toml.as_bytes().into(),
+            },
+        };
 
         let toml = parse_toml(args).unwrap();
 
@@ -194,7 +197,9 @@ mod tests {
     #[test]
     fn parse_toml_from_file_is_valid() {
         let args = CargoParseArgs {
-            buf: CargoBufKind::FromFile { path: "tests/native/Cargo.toml".into() },
+            buf: CargoBufKind::FromFile {
+                path: "tests/native/Cargo.toml".into(),
+            },
         };
 
         let toml = parse_toml(args);
@@ -215,7 +220,11 @@ mod tests {
             crate-type = ["rlib", "cdylib"]
         "#;
 
-        let args = CargoParseArgs { buf: CargoBufKind::FromBuf { buf: toml.as_bytes().into() } };
+        let args = CargoParseArgs {
+            buf: CargoBufKind::FromBuf {
+                buf: toml.as_bytes().into(),
+            },
+        };
 
         let toml = parse_toml(args);
 
@@ -239,7 +248,8 @@ mod tests {
 
     #[test]
     fn parse_toml_missing_version() {
-        assert_inavlid!(r#"
+        assert_inavlid!(
+            r#"
                 [package]
                 name = "native"
                 authors = ["Somebody", "Somebody Else"]
@@ -247,12 +257,14 @@ mod tests {
                 [lib]
                 crate-type = ["rlib", "dylib"]
             "#,
-                        CargoParseError::Key(CargoKeyError::Missing { key: "version" }));
+            CargoParseError::Key(CargoKeyError::Missing { key: "version" })
+        );
     }
 
     #[test]
     fn parse_toml_missing_name() {
-        assert_inavlid!(r#"
+        assert_inavlid!(
+            r#"
                 [package]
                 version = "0.1.0"
                 authors = ["Somebody", "Somebody Else"]
@@ -260,12 +272,14 @@ mod tests {
                 [lib]
                 crate-type = ["rlib", "dylib"]
             "#,
-                        CargoParseError::Key(CargoKeyError::Missing { key: "name" }));
+            CargoParseError::Key(CargoKeyError::Missing { key: "name" })
+        );
     }
 
     #[test]
     fn parse_toml_not_a_dylib() {
-        assert_inavlid!(r#"
+        assert_inavlid!(
+            r#"
                 [package]
                 name = "native"
                 version = "0.1.0"
@@ -274,17 +288,20 @@ mod tests {
                 [lib]
                 crate-type = ["rlib", "staticlib"]
             "#,
-                        CargoParseError::NotADyLib);
+            CargoParseError::NotADyLib
+        );
     }
 
     #[test]
     fn parse_toml_missing_lib() {
-        assert_inavlid!(r#"
+        assert_inavlid!(
+            r#"
                 [package]
                 name = "native"
                 version = "0.1.0"
                 authors = ["Somebody", "Somebody Else"]
             "#,
-                        CargoParseError::NotADyLib);
+            CargoParseError::NotADyLib
+        );
     }
 }
