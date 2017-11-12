@@ -6,14 +6,14 @@ Pack native Rust libraries as .NET Nuget packages.
 
 Platform                             | Rust Version      | DotNet SDK Version | Status
 ------------------------------------ | ----------------- | ------------------ | ---------------
-Linux (Debian x64) / OSX (10.12 x64) | Stable (1.15.1)   | 2.0.0              | [![Build Status](https://travis-ci.org/KodrAus/cargo-nuget.svg?branch=master)](https://travis-ci.org/KodrAus/cargo-nuget)
-Windows (MSVC x64)                   | Stable (1.15.1)   | 2.0.0              | [![Build status](https://ci.appveyor.com/api/projects/status/v7mum8fgs5ho3oua?svg=true)](https://ci.appveyor.com/project/KodrAus/nuget-rs)
+Linux (Debian x64) / OSX (10.12 x64) | Stable (1.18.0)   | 2.0.0              | [![Build Status](https://travis-ci.org/KodrAus/cargo-nuget.svg?branch=master)](https://travis-ci.org/KodrAus/cargo-nuget)
+Windows (MSVC x64)                   | Stable (1.18.0)   | 2.0.0              | [![Build status](https://ci.appveyor.com/api/projects/status/v7mum8fgs5ho3oua?svg=true)](https://ci.appveyor.com/project/KodrAus/nuget-rs)
 
 ## Progress
 
 - [x] Package builds for local target
 - [x] Release as cargo tool
-- [ ] Package builds for cross-platform targets
+- [x] Package builds for cross-platform targets _(limited to pre-built cross-platform libs)_
 
 ## Installation
 
@@ -25,7 +25,7 @@ $ cargo install cargo-nuget
 
 See [a complete example](https://github.com/KodrAus/cargo-nuget/tree/master/tests).
 
-Running `cargo-nuget pack` will attempt to pack a crate in the current directory as a `nupkg`:
+Running `cargo-nuget pack` will attempt to pack a local build of the crate in the current directory as a `nupkg`:
 
 ```shell
 $ cargo-nuget pack
@@ -38,6 +38,23 @@ $ tree
 │   └── lib.rs
 └── target
 ```
+
+Running `cargo-nuget cross` will attempt to pack a cross-platform build of the crate in the current directory as a `nupkg`:
+
+```shell
+$ cargo-nuget cross --targets win-x64 linux-x64 osx-x64 --win-x64-path ./target/x86_64-pc-windows-gnu/debug/your_crate.dll --linux-x64-path ./target/x86_64-unknown-linux-gnu/debug/libyour_crate.so --osx-x64-path ./target/x86_64-apple-darwin/debug/libyour_crate.dylib
+$ tree
+.
+├── Cargo.lock
+├── Cargo.toml
+├── your_crate.0.1.0.nupkg
+├── src
+│   └── lib.rs
+└── target
+```
+
+The `cross` command requires the relevant targets are listed along with paths to pre-built libraries for each platform.
+This restriction should be removed in the future.
 
 For a complete set of commands:
 
