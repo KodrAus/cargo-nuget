@@ -1,14 +1,14 @@
 use std::io::{stderr, Write};
-use log::{self, Level, LevelFilter, Log, Metadata, Record};
+use log::{self, LogLevel, LogLevelFilter, Log, LogMetadata, LogRecord};
 use term_painter::ToStyle;
 use term_painter::Color::*;
 
 struct Logger;
 
 impl Log for Logger {
-    fn log(&self, record: &Record) {
+    fn log(&self, record: &LogRecord) {
         match record.level() {
-            Level::Error => {
+            LogLevel::Error => {
                 let _ = writeln!(
                     stderr(),
                     "{}{}",
@@ -16,14 +16,14 @@ impl Log for Logger {
                     Red.paint(record.args())
                 );
             }
-            Level::Warn => {
+            LogLevel::Warn => {
                 println!(
                     "{}{}",
                     Yellow.bold().paint("warn: "),
                     Yellow.paint(record.args())
                 );
             }
-            Level::Debug => {
+            LogLevel::Debug => {
                 println!(
                     "{}{}",
                     Blue.bold().paint("debug: "),
@@ -34,16 +34,14 @@ impl Log for Logger {
         }
     }
 
-    fn enabled(&self, _: &Metadata) -> bool {
+    fn enabled(&self, _: &LogMetadata) -> bool {
         true
     }
-
-    fn flush(&self) {}
 }
 
 pub fn init() {
-    log::set_boxed_logger(|max_level| {
-        max_level.set(LevelFilter::Debug);
+    log::set_logger(|max_level| {
+        max_level.set(LogLevelFilter::Debug);
         Box::new(Logger)
     }).unwrap();
 }
