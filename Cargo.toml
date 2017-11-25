@@ -1,6 +1,6 @@
 [package]
 name = "cargo-nuget"
-version = "0.0.3"
+version = "0.1.0"
 authors = ["Ashley Mannix <ashleymannix@live.com.au>"]
 description = "Bundle Rust libraries as Nuget packages"
 repository = "https://github.com/KodrAus/nuget-rs"
@@ -15,5 +15,5 @@ xml-rs = "~0.3"
 zip = "~0.2"
 chrono = "~0.3"
 semver = "~0.6"
-log = { git = "https://github.com/rust-lang-nursery/log.git", features = ["std"] }
-lazy_static = "*"
+log = "~0.3"
+lazy_static = "~0.2"
