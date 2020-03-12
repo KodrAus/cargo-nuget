@@ -46,6 +46,7 @@ pub struct NugetSpecArgs<'a> {
     pub version: Cow<'a, str>,
     pub authors: Cow<'a, str>,
     pub description: Cow<'a, str>,
+    pub repository: Cow<'a, str>,
     pub dependencies: NugetDependencies<'a>,
 }
 
@@ -85,6 +86,7 @@ fn format_meta<'a>(args: &NugetSpecArgs<'a>, writer: &mut xml::Writer) -> Result
     xml::val(writer, "id", &args.id)?;
     xml::val(writer, "version", &args.version)?;
     xml::val(writer, "authors", &args.authors)?;
+    xml::elem(writer, "repository", &[xml::attr("url", &args.repository)], |_| { Ok(()) })?;
     xml::val(writer, "description", &args.description)
 }
 
@@ -134,6 +136,7 @@ mod tests {
             version: "0.1.0".into(),
             authors: "Someone".into(),
             description: "A description for this package".into(),
+            repository: "https://github.com/KodrAus/cargo-nuget".into(),
             dependencies: NugetDependencies(vec![
                 NugetDependency {
                     id: "A".into(),
@@ -156,6 +159,7 @@ mod tests {
                     <id>native</id>
                     <version>0.1.0</version>
                     <authors>Someone</authors>
+                    <repository url="https://github.com/KodrAus/cargo-nuget" />
                     <description>A description for this package</description>
                     <dependencies>
                         <dependency id="A" version="1.0.0" />
