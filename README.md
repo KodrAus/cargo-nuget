@@ -92,4 +92,4 @@ In general the tool should:
 
 ### Why use packages?
 
-The new .NET Core tooling for packages is a big improvement over the old rubbish we had to deal with. I think it's possible to support development workflows using packages in .NET in a way we couldn't do before. Being able to referernce native assemblies using packages has the benefit of working the exact same way in dev as it would in the wild.
+The new .NET Core tooling for packages is a big improvement over the old way. I think it's possible to support development workflows using packages in .NET in a way we couldn't do before. Being able to referernce native assemblies using packages has the benefit of working the exact same way in dev as it would in the wild.
