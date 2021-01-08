@@ -31,6 +31,7 @@ pub struct CargoConfig {
     pub name: String,
     pub version: String,
     pub authors: Vec<String>,
+    pub repository: String,
     pub description: String,
 }
 
@@ -61,6 +62,7 @@ fn parse_config_from_toml(toml: &BTreeMap<String, Value>) -> Result<CargoConfig,
     let pkg = toml_val!(toml["package"].as_table())?;
     let name = toml_val!(pkg["name"].as_str())?.to_owned();
     let ver = toml_val!(pkg["version"].as_str())?.to_owned();
+    let repository = toml_val!(pkg["repository"].as_str())?.to_owned();
     let desc = toml_val!(pkg["description"].as_str())?.to_owned();
     let authors = toml_val!(pkg["authors"].as_slice())?
         .iter()
@@ -72,6 +74,7 @@ fn parse_config_from_toml(toml: &BTreeMap<String, Value>) -> Result<CargoConfig,
         name: name,
         version: ver,
         authors: authors,
+        repository: repository,
         description: desc,
     })
 }
@@ -170,6 +173,7 @@ mod tests {
             name = "native"
             version = "0.1.0"
             authors = ["Somebody", "Somebody Else"]
+            repository = "https://github.com/KodrAus/cargo-nuget"
             description = ""
 
             [lib]
@@ -188,6 +192,7 @@ mod tests {
             name: "native".into(),
             version: "0.1.0".into(),
             authors: vec!["Somebody".into(), "Somebody Else".into()],
+            repository: "https://github.com/KodrAus/cargo-nuget".into(),
             description: "".into(),
         };
 
@@ -214,6 +219,7 @@ mod tests {
             name = "native"
             version = "0.1.0"
             authors = ["Somebody", "Somebody Else"]
+            repository = "http://examplerepository.com"
             description = ""
 
             [lib]

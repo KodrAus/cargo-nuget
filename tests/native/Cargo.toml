@@ -4,6 +4,7 @@
 name = "native_test"
 version = "0.0.1"
 authors = ["Somebody", "Somebody Else"]
+repository = "http://examplerepository.com"
 description = "A library for testing cargo nuget"
 
 [lib]
