@@ -97,17 +97,13 @@ fn write_lib<W>(
 where
     W: Write + Seek,
 {
-    let mut path = PathBuf::new();
-    path.push("runtimes");
-    path.push(rid);
-    path.push("native");
-    path.push(id);
+    let path = match lib_path.extension() {
+        Some(extension) =>
+            format!("runtimes/{}/native/{}.{}", rid, id, extension.to_string_lossy()),
+        None => format!("runtimes/{}/native/{}", rid, id)
+    };
 
-    if let Some(extension) = lib_path.extension() {
-        path.set_extension(extension);
-    }
-
-    writer.start_file(path.to_string_lossy(), options())?;
+    writer.start_file(path, options())?;
 
     let mut lib = File::open(lib_path)?;
     copy(&mut lib, writer)?;
